@@ -18,19 +18,19 @@ class EntityWithMetadata(IdentifiableEntity):
         self.title = title
         self.creators = set()
         for creator in creators:
-            self.id.add(creator)
+            self.creators.add(creator)
 
 class Collection(EntityWithMetadata):
     def __init__(self, items):
-        self.item = set()
+        self.items = set()
         for item in items:
-            self.item.add(item)
+            self.items.add(item)
 
 class Manifest(EntityWithMetadata):
     def __init__(self, items):
-        self.item = set()
+        self.items = set()
         for item in items:
-          self.item.add(item)
+          self.items.add(item)
 
 class Canvas(EntityWithMetadata):
     pass
