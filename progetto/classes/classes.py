@@ -1,39 +1,57 @@
 class IdentifiableEntity(object):
-    def __init__(self, id):
-        self.id = id
+     def __init__(self, id):
+         self.id = id
 
 class Annotation(IdentifiableEntity):
     def __init__(self, motivation, target, body):
         self.motivation = motivation
         self.target = target
         self.body = body
-
+    
 class Image(IdentifiableEntity):
     pass
 
 
-class EntityWithMetadata(IdentifiableEntity):
-    def __init__(self, label, title, creators):
+class EntityWithMetadataCreators(IdentifiableEntity):
+    def __init__(self, creator):
+        self.creator = creator
+        
+    
+
+        # self.creators = set()
+        # for creator in creators:
+        #     self.creators.add(creator)
+
+class Collection(IdentifiableEntity):
+    def __init__(self, label, title):
+        # self.items = set()
+        self.label = label
+        self.title = title       
+        # for item in items:
+        #     self.items.add(item)
+
+class Manifest(IdentifiableEntity):
+    def __init__(self, label, title):
+        self.label = label
+        self.title = title 
+        # self.items = set()
+        # for item in items:
+        #   self.items.add(item)
+
+class Canvas(IdentifiableEntity):
+    def __init__(self, label, title):
         self.label = label
         self.title = title
-        self.creators = set()
-        for creator in creators:
-            self.creators.add(creator)
-
-class Collection(EntityWithMetadata):
-    def __init__(self, items):
-        self.items = set()
-        for item in items:
-            self.items.add(item)
-
-class Manifest(EntityWithMetadata):
-    def __init__(self, items):
-        self.items = set()
-        for item in items:
-          self.items.add(item)
-
-class Canvas(EntityWithMetadata):
-    pass
+        
+class CollectionItems(Manifest):
+    def __init__(self, item_id, item):
+        self.item_id = item_id
+        self.item = item
+        
+class ManifestItems(Canvas):
+    def __init__(self, item_id, item):
+        self.item_id = item_id
+        self.item = item
 
 
 
