@@ -49,7 +49,16 @@ for word , row in metadata.iterrows():
 
 #ora tocca fare le merge
 df_joined = merge(collection, creator, left_on="creator", right_on="creator") 
-print(df_joined)
+df_joined_2 = merge(manifest, creator, left_on="creator", right_on="creator") 
+df_joined_3 = merge(canvas, creator, left_on="creator", right_on="creator") 
+
+# print(df_joined)
 collection = df_joined[["id", "title", "EntityWithMetadataCreatorID"]]
 collection = collection.rename(columns={"EntityWithMetadataCreatorID" : "internalId"})
+manifest = df_joined_2[["id", "title", "EntityWithMetadataCreatorID"]]
+manifest = manifest.rename(columns={"EntityWithMetadataCreatorID" : "internalId"})
+canvas = df_joined_3[["id", "title", "EntityWithMetadataCreatorID"]]
+canvas = canvas.rename(columns={"EntityWithMetadataCreatorID" : "internalId"})
 print(collection)
+print(manifest)
+print(canvas)
