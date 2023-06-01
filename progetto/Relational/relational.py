@@ -1,6 +1,7 @@
 from pandas import read_csv, merge, Series, DataFrame
 from sqlite3 import connect
 import pandas as pd
+import re
 
 annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id":"string",
                                                                              "body":"string",
@@ -18,12 +19,23 @@ creator = metadata[["creator"]]
 # if ";" in creator:
 #     creator = creator.split(";")
 #     for i in creator:
-        
+
+internal_ids=list(metadata ["id"])  
+
+
+for i in range(len(internal_ids)):
+    internal_ids[i]=re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",internal_ids[i]).group()
+    #ids[i]=re.search(r"iiif\/(.+)$",ids[i])
+    #nuoviids[i]=re.search(r"iiif\/(.+)$",ids[i])
+#print (ids)
+
+
+
 metadata_internal_id = []
 for idx, row in creator.iterrows():
     metadata_internal_id.append(str(idx))
 
-creator.insert(0, "EntityWithMetadataCreatorID", Series(metadata_internal_id, dtype="string"))
+creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))
     
 # venues_ids.insert(0, "venueId", Series(venue_internal_id, dtype="string"))
 
