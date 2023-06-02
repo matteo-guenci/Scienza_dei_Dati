@@ -15,7 +15,7 @@ annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id
 metadata = read_csv("data/metadata.csv", keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
                                                                        "creator":"string"})
-creator = metadata[["creator"]]
+creator = metadata[["creator", "id"]]
 # if ";" in creator:
 #     creator = creator.split(";")
 #     for i in creator:
@@ -60,11 +60,11 @@ for word , row in metadata.iterrows():
 # print(canvas)
 
 #ora tocca fare le merge
-df_joined = merge(collection, creator, left_on="creator", right_on="creator") 
-df_joined_2 = merge(manifest, creator, left_on="creator", right_on="creator") 
-df_joined_3 = merge(canvas, creator, left_on="creator", right_on="creator") 
+df_joined = merge(collection, creator, left_on="id", right_on="id") 
+df_joined_2 = merge(manifest, creator, left_on="id", right_on="id") 
+df_joined_3 = merge(canvas, creator, left_on="id", right_on="id") 
 
-# print(df_joined)
+#print(df_joined_2)
 collection = df_joined[["id", "title", "EntityWithMetadataCreatorID"]]
 collection = collection.rename(columns={"EntityWithMetadataCreatorID" : "internalId"})
 manifest = df_joined_2[["id", "title", "EntityWithMetadataCreatorID"]]
