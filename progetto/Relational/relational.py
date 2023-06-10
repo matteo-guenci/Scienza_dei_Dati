@@ -1,4 +1,4 @@
-from pandas import read_csv, merge, Series, DataFrame
+from pandas import read_csv, merge, Series, DataFrame, read_sql
 from sqlite3 import connect
 import pandas as pd
 import re
@@ -65,9 +65,6 @@ for word, row in metadata.iterrows():      #modificato
         manifest = manifest._append(row._append(Series({"collectionID":collection_id})), ignore_index=True)
     if "canvas" in row["id"]:
         canvas = canvas._append(row._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
-#print(collection)
-#print(manifest)
-#print(canvas)
 
 #ora tocca fare le merge
 df_joined = merge(collection, creator, left_on="id", right_on="id") 
@@ -85,5 +82,28 @@ canvas = canvas.rename(columns={"EntityWithMetadataCreatorID": "internalId"})
 print(collection)
 print(manifest)
 print(canvas)
-# print(creator)
+print(creator)
 #print(metadata)
+
+# with connect("publications.db") as con:
+#     venues_ids.to_sql("VenueId", con, if_exists="replace", index=False)
+#     journals.to_sql("Journal", con, if_exists="replace", index=False)
+#     books.to_sql("Book", con, if_exists="replace", index=False)
+#     journal_articles.to_sql("JournalArticle", con, if_exists="replace", index=False)
+#     book_chapters.to_sql("BookChapter", con, if_exists="replace", index=False)
+
+with connect("annotations_metadata.db") as con:
+    creator.to_sql("Creator", con, if_exists="replace", index=False)
+    collection.to_sql("Collection", con, if_exists="replace", index=False)
+    manifest.to_sql("Manifest", con, if_exists="replace", index=False)
+    canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+    con.commit()
+
+with connect("annotations_metadata.db") as con:
+    query = "SELECT title FROM Collection"
+    query_2 = "SELECT * FROM Manifest"
+    df_sql = read_sql(query, con)
+    df_sql_2 = read_sql(query_2, con)
+    
+print(df_sql)
+print(df_sql_2["collectionID"])
