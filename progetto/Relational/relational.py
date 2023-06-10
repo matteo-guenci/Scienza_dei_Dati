@@ -59,15 +59,15 @@ canvas_id = ""
 for word, row in metadata.iterrows():      #modificato
     if "collection" in row["id"]:
         collection_id = row["internalID"]
-        collection = collection.append(row)   #filtered_df = pd.concat([filtered_df, row], axis=1)
+        collection = collection._append(row)   #filtered_df = pd.concat([filtered_df, row], axis=1)
     if "manifest" in row["id"]:
         manifest_id = row["internalID"]
-        manifest = manifest.append(row.append(Series({"collectionID":collection_id})), ignore_index=True)
+        manifest = manifest._append(row._append(Series({"collectionID":collection_id})), ignore_index=True)
     if "canvas" in row["id"]:
-        canvas = canvas.append(row.append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
-print(collection)
-print(manifest)
-print(canvas)
+        canvas = canvas._append(row._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
+#print(collection)
+#print(manifest)
+#print(canvas)
 
 #ora tocca fare le merge
 df_joined = merge(collection, creator, left_on="id", right_on="id") 
@@ -76,13 +76,14 @@ df_joined_3 = merge(canvas, creator, left_on="id", right_on="id")
 
 #print(df_joined_2)
 collection = df_joined[["id", "title", "EntityWithMetadataCreatorID"]]
-collection = collection.rename(columns={"EntityWithMetadataCreatorID" : "internalId"})
-manifest = df_joined_2[["id", "title", "EntityWithMetadataCreatorID"]]
-manifest = manifest.rename(columns={"EntityWithMetadataCreatorID" : "internalId"})
-canvas = df_joined_3[["id", "title", "EntityWithMetadataCreatorID"]]
-canvas = canvas.rename(columns={"EntityWithMetadataCreatorID" : "internalId"})
-# print(collection)
-# print(manifest)
-# print(canvas)
+collection = collection.rename(columns={"EntityWithMetadataCreatorID": "internalId"})
+manifest = df_joined_2[["id", "title", "EntityWithMetadataCreatorID", "collectionID"]]
+manifest = manifest.rename(columns={"EntityWithMetadataCreatorID": "internalId"})
+canvas = df_joined_3[["id", "title", "EntityWithMetadataCreatorID", "manifestID", "collectionID"]]
+canvas = canvas.rename(columns={"EntityWithMetadataCreatorID": "internalId"})
+
+print(collection)
+print(manifest)
+print(canvas)
 # print(creator)
 #print(metadata)
