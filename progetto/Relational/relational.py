@@ -102,8 +102,21 @@ with connect("annotations_metadata.db") as con:
 with connect("annotations_metadata.db") as con:
     query = "SELECT title FROM Collection"
     query_2 = "SELECT * FROM Manifest"
+    query_3 = """SELECT id
+FROM Manifest
+WHERE internalID='2/28429/canvas/p1'
+
+UNION
+
+SELECT id
+FROM Canvas
+WHERE internalID='2/28429/canvas/p1'"""
     df_sql = read_sql(query, con)
     df_sql_2 = read_sql(query_2, con)
+    df_sql_3 = read_sql(query_3, con)
     
 print(df_sql)
 print(df_sql_2["collectionID"])
+print(df_sql_3)
+
+
