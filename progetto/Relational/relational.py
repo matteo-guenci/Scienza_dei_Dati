@@ -40,7 +40,8 @@ metadata_internal_id = []
 for idx, row in creator.iterrows():
     metadata_internal_id.append(str(idx))
 
-creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))
+creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))  
+#ma per creare "creator" non basterebbe prendere metadata selezionando solo id, internal id e creator e fare il rename su internalID? senza fare tutti questi procedimenti di metti e togli
 
 # venues_ids.insert(0, "venueId", Series(venue_internal_id, dtype="string"))
 
