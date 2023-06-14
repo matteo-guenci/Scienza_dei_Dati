@@ -10,14 +10,13 @@ annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id
                                                                              "motivations":"string"})
 #su annotations si può applicare extract_id (su /iiif/2/28429/annotation/p0001-image) e ottenere un internal id, dopodiché creare i dataframe necessari
 annotations.insert(0, "internalID", Series(annotations["id"].apply(extract_id), dtype="string"))
-print(annotations)
 annotations_ids = annotations[["internalID", "id"]]
-print(annotations_ids)
 # annotations_btm = annotations[["body", "target", "motivation"]]
 # print(annotations_btm)
 body = annotations[["internalID", "body"]]
 target = annotations[["internalID", "target"]]
 motivation = annotations[["internalID", "motivation"]]
+# print(annotations_ids)
 # print(body)
 # print(target)
 # print(motivation)
@@ -107,31 +106,31 @@ df_joined_3 = merge(canvas, creator, on="internalID", how="left")
 # canvas = df_joined_3[["id", "internalID", "manifestID", "collectionID"]]
 # # canvas = canvas.rename(columns={"EntityWithMetadataCreatorID": "internalId"})
 
-print(collection)
-print(manifest)
-print(canvas)
-print(creator)
-print(df_joined)
-print(df_joined_2)
-print(df_joined_3)
+# print(collection)
+# print(manifest)
+# print(canvas)
+# print(creator)
+# print(df_joined)
+# print(df_joined_2)
+# print(df_joined_3)
 
 
-with connect("annotations_metadata.db") as con:
-    creator.to_sql("Creator", con, if_exists="replace", index=False)
-    collection.to_sql("Collection", con, if_exists="replace", index=False)
-    manifest.to_sql("Manifest", con, if_exists="replace", index=False)
-    canvas.to_sql("Canvas", con, if_exists="replace", index=False)
-    body.to_sql("Body", con, if_exists="replace", index=False)
-    target.to_sql("Target", con, if_exists="replace", index=False)
-    motivation.to_sql("Motivation", con, if_exists="replace", index=False)
-    annotations_ids.to_sql("Annotations", con, if_exists="replace", index=False)
-    # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
-    # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
-    # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
-    # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
-    # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
-    # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
-    con.commit()
+# with connect("annotations_metadata.db") as con:
+#     creator.to_sql("Creator", con, if_exists="replace", index=False)
+#     collection.to_sql("Collection", con, if_exists="replace", index=False)
+#     manifest.to_sql("Manifest", con, if_exists="replace", index=False)
+#     canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+#     body.to_sql("Body", con, if_exists="replace", index=False)
+#     target.to_sql("Target", con, if_exists="replace", index=False)
+#     motivation.to_sql("Motivation", con, if_exists="replace", index=False)
+#     annotations_ids.to_sql("Annotations", con, if_exists="replace", index=False)
+#     # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
+#     # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
+#     # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
+#     # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
+#     # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
+#     # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
+#     con.commit()
 
 # with connect("annotations_metadata.db") as con:
 #     query = "SELECT title FROM Collection"
