@@ -39,7 +39,10 @@ from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
 # publicationVenue = URIRef("https://schema.org/isPartOf")
 
 with open("./data/collection-1.json", "r", encoding="utf-8") as f:
-    json_doc = load(f)
+    json_doc1 = load(f)
+
+with open("./data/collection-2.json", "r", encoding="utf-8") as f:
+    json_doc2 = load(f)
 
 iiif_prezi = Namespace("http://iiif.io/api/presentation/3#")
 ast = Namespace("http://www.w3.org/ns/activitystreams#")
@@ -54,12 +57,12 @@ k_graph.bind("rdf", rdf)
 Item = URIRef (ast+"items")
 Label=URIRef (rdf+"label")
 
-def level (father, json_doc):
+def fill (father, json_doc):
     for i in json_doc:
         if i == "id":
-            
             id=URIRef(json_doc[i])
-            k_graph.add((father, Item, id))
+            if father:
+                k_graph.add((father, Item, id))
             
         if i == "type":
             k_graph.add((id, RDF.type, URIRef(iiif_prezi+json_doc[i])))
@@ -69,23 +72,26 @@ def level (father, json_doc):
                     k_graph.add((id, Label, Literal(k)))
         if i == "items":
             for j in json_doc[i]:
-                level (id, j)
+                fill (id, j)
         else: pass
+
+fill(None, json_doc1)
+fill(None, json_doc2)
     
 
-for i in json_doc:
-    if i == "id":
-        id=URIRef(json_doc[i])
-    if i == "type":
-        k_graph.add((id, RDF.type, URIRef(iiif_prezi+json_doc[i])))
-    if i == "label":
-        for j in json_doc[i]:
-            for k in json_doc[i][j]:
-                k_graph.add((id, Label, Literal(k)))
-    if i == "items":
-        for j in json_doc[i]:
-            level (id, j)
-    else: pass
+# for i in json_doc:
+#     if i == "id":
+#         id=URIRef(json_doc[i])
+#     if i == "type":
+#         k_graph.add((id, RDF.type, URIRef(iiif_prezi+json_doc[i])))
+#     if i == "label":
+#         for j in json_doc[i]:
+#             for k in json_doc[i][j]:
+#                 k_graph.add((id, Label, Literal(k)))
+#     if i == "items":
+#         for j in json_doc[i]:
+#             level (id, j)
+#     else: pass
 
     
 
