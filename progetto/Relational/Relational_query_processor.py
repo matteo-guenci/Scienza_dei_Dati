@@ -19,9 +19,8 @@ class Relational_query_processor(object):
 
     def getAnnotationsWithBody(body):
         value = body
-        with connect("annotations_metadata") as con:
-            query = "SELECT * FROM Annotations WHERE body = value"
-            results = read_sql(query, con)
+        query = "SELECT * FROM Annotations WHERE body = value"
+        results = read_sql(query)
         return results
     
 print(Relational_query_processor.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg"))
