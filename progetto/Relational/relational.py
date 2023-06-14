@@ -21,7 +21,7 @@ metadata.insert(0, "internalID", Series(metadata["id"].apply(extract_id), dtype=
 # creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))
 
 
-creator = metadata[["creator", "id"]] 
+creator = metadata[["creator", "id", "internalID"]] 
 # if ";" in creator:
 #     creator = creator.split(";")
 #     for i in creator:
