@@ -21,9 +21,9 @@ motivation = annotations[["internalID", "motivation"]]
 # print(body)
 # print(target)
 # print(motivation)
-df_joined_4 = merge(body, annotations_ids, on="internalID")
-df_joined_5 = merge(target, annotations_ids, on="internalID")
-df_joined_6 = merge(motivation, annotations_ids, on="internalID")
+df_joined_4 = merge(body, annotations_ids, on="internalID", how="left")
+df_joined_5 = merge(target, annotations_ids, on="internalID", how="left")
+df_joined_6 = merge(motivation, annotations_ids, on="internalID", how="left")
 # body = df_joined_4
 # target = df_joined_5
 # motivation= df_joined_6
@@ -124,10 +124,16 @@ with connect("annotations_metadata.db") as con:
     collection.to_sql("Collection", con, if_exists="replace", index=False)
     manifest.to_sql("Manifest", con, if_exists="replace", index=False)
     canvas.to_sql("Canvas", con, if_exists="replace", index=False)
-    annotations_ids.to_sql("Annotations_ids", con, if_exists="replace", index=False)
     body.to_sql("Body", con, if_exists="replace", index=False)
     target.to_sql("Target", con, if_exists="replace", index=False)
     motivation.to_sql("Motivation", con, if_exists="replace", index=False)
+    annotations_ids.to_sql("Annotations", con, if_exists="replace", index=False)
+    # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
+    # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
+    # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
+    # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
+    # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
+    # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
     con.commit()
 
 # with connect("annotations_metadata.db") as con:
