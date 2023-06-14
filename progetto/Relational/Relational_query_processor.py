@@ -1,6 +1,5 @@
 from pandas import DataFrame
 from relational import annotations
-from relational import my_dataframe
 from classes import Image
 from sqlite3 import connect 
 from pandas import read_sql
@@ -20,8 +19,8 @@ class Relational_query_processor(object):
 
     def getAnnotationsWithBody(body):
         value = body
-        with connect("my_dataframe") as con:
-            query = "SELECT * FROM my_dataframe WHERE body = value"
+        with connect("annotations_metadata") as con:
+            query = "SELECT * FROM Annotations WHERE body = value"
             results = read_sql(query, con)
         return results
     

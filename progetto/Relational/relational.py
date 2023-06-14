@@ -11,7 +11,7 @@ annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id
 #su annotations si può applicare extract_id e ottenere un internal id, dopodiché creare i dataframe necessari
 # for idx, row in venues_ids.iterrows():
 #     venue_internal_id.append("venue-" + str(idx))
-
+my_Dataframe = DataFrame(annotations)
 
 metadata = read_csv("data/metadata.csv", keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
