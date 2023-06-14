@@ -17,17 +17,14 @@ class Relational_query_processor(object):
     def getAllImages(self):
         return Image
 
-    # def getAnnotationsWithBody(body):
-        # value = body
-        # with connect("annotations_metadata") as con:
-        #     query = "SELECT * FROM Annotations"
-        #     results = read_sql(query, con)
-        # print("questa è la cazzo di query: ", results)
+    def getAnnotationsWithBody(body):
+        value = body
+        with connect("progetto/annotations_metadata.db") as con:
+            query = "SELECT * FROM Annotations"
+            results = read_sql(query, con)
+        print("questa è la cazzo di query: ", results)
     
-with connect("annotations_metadata.db") as con:
-    query = "SELECT * FROM Annotations"
-    results = read_sql(query, con)
-print("questa è la cazzo di query: ", results)
+
 
     #def getAnnotationsWithBodyAndTarget(self):
         
