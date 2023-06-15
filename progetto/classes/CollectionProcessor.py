@@ -5,7 +5,7 @@ from json import load
 from rdflib import *
 from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
 
-class collectionProcessor (object):
+class collectionProcessor(object):
     def __init__(self):
         self.path=""
         self.endpoint=""
@@ -18,7 +18,7 @@ class collectionProcessor (object):
 
     def uploadData (self, path:str):
          
-         def fill (father, json_doc):
+        def fill (father, json_doc):
             for i in json_doc:
                 if i == "id":
                     id=URIRef(json_doc[i])
@@ -36,40 +36,41 @@ class collectionProcessor (object):
                         fill (id, j)
                 else: pass
 
-            self.path=path
-            
-            with open(path, "r", encoding="utf-8") as f:
-                json_doc1 = load(f)
+        self.path=path
+        
+        with open(path, "r", encoding="utf-8") as f:
+            json_doc1 = load(f)
 
-            # with open("./data/collection-2.json", "r", encoding="utf-8") as f:
-            #     json_doc2 = load(f)
+        # with open("./data/collection-2.json", "r", encoding="utf-8") as f:
+        #     json_doc2 = load(f)
 
-            k_graph= Graph()
+        k_graph= Graph()
 
-            k_graph.bind("iiif_prezi", self.iiif_prezi)
-            k_graph.bind("ast", self.ast)
-            k_graph.bind("rdf", self.rdf)
+        k_graph.bind("iiif_prezi", self.iiif_prezi)
+        k_graph.bind("ast", self.ast)
+        k_graph.bind("rdf", self.rdf)
 
-            Item = URIRef (self.ast+"items")
-            Label=URIRef (self.rdf+"label")
+        Item = URIRef (self.ast+"items")
+        Label=URIRef (self.rdf+"label")
 
-            fill(None, json_doc1)
-                    
-
-            store = SPARQLUpdateStore()
-
-            # The URL of the SPARQL endpoint is the same URL of the Blazegraph
-            # instance + '/sparql'
-            
-
-            # It opens the connection with the SPARQL endpoint instance
-            store.open((self.endpoint, self.endpoint))
-
-            #delete_query="""DELETE WHERE {?s ?p ?o.}"""
-
-            for triple in k_graph.triples((None, None, None)):
-                store.add(triple)
+        fill(None, json_doc1)
                 
-            #store.update(delete_query)
-            # Once finished, remeber to close the connection
-            store.close()
+
+        store = SPARQLUpdateStore()
+
+        # The URL of the SPARQL endpoint is the same URL of the Blazegraph
+        # instance + '/sparql'
+        
+
+        # It opens the connection with the SPARQL endpoint instance
+        store.open((self.endpoint, self.endpoint))
+
+        #delete_query="""DELETE WHERE {?s ?p ?o.}"""
+
+        for triple in k_graph.triples((None, None, None)):
+            store.add(triple)
+            
+        #store.update(delete_query)
+        # Once finished, remeber to close the connection
+        store.close()
+        
