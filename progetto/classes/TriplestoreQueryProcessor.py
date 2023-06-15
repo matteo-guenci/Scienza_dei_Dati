@@ -4,11 +4,8 @@ from rdflib import *
 from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
 from sparql_dataframe import get
 
-
-endpoint = "http://127.0.0.1:9999/blazegraph/sparql"
-
 #class TriplestoreQueryProcessor(QueryProcessor):
-class TriplestoreQueryProcessor(object):
+class triplestoreQueryProcessor(object):
     # def __init__(self, Canvas, Manifest, Collection, Canvases_Collection,Canvases_Manifest,Entities_Label,Manifest_Collections):
     #     self.canvas=get (endpoint, Canvas,True)
     #     self.Manifests=get (endpoint, Manifest,True)
@@ -26,7 +23,10 @@ class TriplestoreQueryProcessor(object):
      self.Canvases_Manifest=DataFrame()
      self.Entities_Label=DataFrame()
      self.Manifest_Collections=DataFrame()
-     endpoint = "http://127.0.0.1:9999/blazegraph/sparql"
+     self.endpoint=""
+
+    def setDbPathOrURl(self, path):
+         self.endpoint = path
     
     def getAllCanvases(self):
         query="""
@@ -36,7 +36,7 @@ class TriplestoreQueryProcessor(object):
 
         select ?canvas where {?canvas a iiif_prezi:Canvas.}
         """
-        df_sparq=get(endpoint,query,True)
+        df_sparq=get(self.endpoint,query,True)
         self.Canvas=df_sparq
         return self.Canvas
         
@@ -48,7 +48,7 @@ class TriplestoreQueryProcessor(object):
 
         select ?collections where {?collections a iiif_prezi:Collection.}
         """
-        df_sparq=get(endpoint,query,True)
+        df_sparq=get(self.endpoint,query,True)
         self.Collections=df_sparq
         return self.Collections
         
@@ -61,7 +61,7 @@ class TriplestoreQueryProcessor(object):
 
         select ?manifests where {?manifests a iiif_prezi:Manifest.}
         """
-        df_sparq=get(endpoint,query,True)
+        df_sparq=get(self.endpoint,query,True)
         self.Manifests=df_sparq
         return self.Manifests
         
@@ -74,7 +74,7 @@ class TriplestoreQueryProcessor(object):
         select ?canvas where {<"""+str(collectionId)+"""> ast:items ?manifest.
                      ?manifest ast:items ?canvas}
         """
-        df_sparq=get(endpoint,query,True)
+        df_sparq=get(self.endpoint,query,True)
         self.Canvases_Collections=df_sparq
         return self.Canvases_Collections
 
@@ -87,7 +87,7 @@ class TriplestoreQueryProcessor(object):
 
         select ?canvas where {<"""+str(manifestId)+"""> ast:items ?canvas.}
         """
-        df_sparq=get(endpoint,query,True)
+        df_sparq=get(self.endpoint,query,True)
         self.Canvases_Manifest=df_sparq
         return self.Canvases_Manifest
         #ok
@@ -101,7 +101,7 @@ class TriplestoreQueryProcessor(object):
         select * where {?s rdfs:label \""""+str(label)+"""\"}       
         """
         #se non va rivedi escape characters
-        df_sparq=get(endpoint,query,True)
+        df_sparq=get(self.endpoint,query,True)
         self.Entities_Label=df_sparq
         return self.Entities_Label
     
@@ -113,11 +113,7 @@ class TriplestoreQueryProcessor(object):
 
         select ?manifest where {<"""+str(collectionId)+"""> ast:items ?manifest.}
         """
-        df_sparq=get(endpoint,query,True)
+        df_sparq=get(self.endpoint,query,True)
         self.Manifest_Collections=df_sparq
         return self.Manifest_Collections
     
-prova=TriplestoreQueryProcessor()
-
-
-print (prova.getAllCanvases())
