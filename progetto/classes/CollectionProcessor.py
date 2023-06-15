@@ -5,7 +5,7 @@ from json import load
 from rdflib import *
 from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
 
-class collectionProcessor(object):
+class CollectionProcessor(object):
     def __init__(self):
         self.path=""
         self.endpoint=""
