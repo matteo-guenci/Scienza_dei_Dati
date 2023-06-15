@@ -77,7 +77,7 @@ class MetadataProcessor (Processor):
                 return pattern
             pass
 
-        self.Metadata = read_csv(self.dbPathOrUrl, keep_default_na=False, dtype={"id":"string",
+        self.Metadata = read_csv(path, keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
                                                                        "creator":"string"})
 
