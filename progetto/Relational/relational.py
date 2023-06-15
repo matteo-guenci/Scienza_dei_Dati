@@ -3,30 +3,33 @@ from sqlite3 import connect
 import pandas as pd
 import re
 def extract_id(s):               #aggiunto
-    return re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
+    pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
+    if pattern not in s:
+        return None
+    else:
+        return pattern
 annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id":"string",
                                                                              "body":"string",
                                                                              "target":"string",
                                                                              "motivations":"string"})
-<<<<<<< HEAD
 #su annotations si può applicare extract_id e ottenere un internal id, dopodiché creare i dataframe necessari
 # for idx, row in venues_ids.iterrows():
 #     venue_internal_id.append("venue-" + str(idx))
-prova = DataFrame(annotations)
-print(prova)
-=======
+
 #su annotations si può applicare extract_id (su /iiif/2/28429/annotation/p0001-image) e ottenere un internal id, dopodiché creare i dataframe necessari
-annotations.insert(0, "internalID", Series(annotations["id"].apply(extract_id), dtype="string"))
-annotations_ids = annotations[["internalID", "id"]]
+
+
+# prova = DataFrame(annotations)
+# print(prova)
 # annotations_btm = annotations[["body", "target", "motivation"]]
 # print(annotations_btm)
-body = annotations[["internalID", "body"]]
-target = annotations[["internalID", "target"]]
-motivation = annotations[["internalID", "motivation"]]
+# body = annotations[["internalID", "body"]]
+# target = annotations[["internalID", "target"]]
+# motivation = annotations[["internalID", "motivation"]]
 
-df_joined_4 = merge(body, annotations_ids, on="internalID", how="left")
-df_joined_5 = merge(target, annotations_ids, on="internalID", how="left")
-df_joined_6 = merge(motivation, annotations_ids, on="internalID", how="left")
+# df_joined_4 = merge(body, annotations_ids, on="internalID", how="left")
+# df_joined_5 = merge(target, annotations_ids, on="internalID", how="left")
+# df_joined_6 = merge(motivation, annotations_ids, on="internalID", how="left")
 
 # print(annotations_ids)
 # print(body)
@@ -35,7 +38,6 @@ df_joined_6 = merge(motivation, annotations_ids, on="internalID", how="left")
 # print(df_joined_4)
 # print(df_joined_5)
 # print(df_joined_6)
->>>>>>> 22cfa398103e86327513d671ea0abe314ec9abd5
 
 metadata = read_csv("data/metadata.csv", keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
@@ -101,6 +103,44 @@ df_joined_3 = merge(canvas, creator, on="internalID", how="left")
 # df_joined_3 = merge(canvas[["id", "internalID", "manifestID", "collectionID"]], creator[["internalID", "title", "creator"]], on="internalID", how="left")
 # abbiamo specificato how="left" per mantenere solo le corrispondenze tra gli internalID nei DataFrame di origine.
 #i df_joined hanno sia la colonna internalId che EntityWithMetadataCreatorID che mostrano entrambe la stessa cosa
+annotations.insert(0, "internalID", Series(annotations["id"].apply(extract_id), dtype="string"))
+# annotations["target"] = metadata["internalID"]
+
+image = annotations[["body"]] 
+image.insert(0, "imageID", Series(annotations["body"].apply(extract_id), dtype="string")) #ci deve stare body e un internal id fatto da body, in annotation body sarà l'internal id di questo
+annotations_f=DataFrame()
+try:
+    annotations_j = merge(annotations, canvas, left_on="target", right_on="id", how="left")
+    annotations_j = annotations_j[["internalID_x", "id_x", "body", "internalID_y", "motivation"]]
+    annotations_j = annotations_j.rename(columns={"internalID_x":"internalID", "id_x":"id", "internalID_y":"target"})
+    if annotations_j["target"].isna().any():
+        pass
+    else:
+        annotations_f=annotations_j
+except:
+    print("Error")
+try:
+    annotations_j = merge(annotations, collection, left_on="target", right_on="id", how="left")
+    annotations_j = annotations_j[["internalID_x", "id_x", "body", "internalID_y", "motivation"]]
+    annotations_j = annotations_j.rename(columns={"internalID_x":"internalID", "id_x":"id", "internalID_y":"target"})
+    if annotations_j[["target"]] == float("NaN"):
+        pass
+    else:
+        annotations_f=annotations_j
+except:
+    print("Error")
+try:
+    annotations_j = merge(annotations, manifest, left_on="target", right_on="id", how="left")
+    annotations_j = annotations_j[["internalID_x", "id_x", "body", "internalID_y", "motivation"]]
+    annotations_j = annotations_j.rename(columns={"internalID_x":"internalID", "id_x":"id", "internalID_y":"target"})
+    if annotations_j[["target"]] == float("NaN"):
+        pass
+    else:
+        annotations_f=annotations_j
+except:
+    print("Error")
+
+print(annotations_f)
 
 # collection = df_joined[["id", "internalID"]]
 # # collection = collection.rename(columns={"EntityWithMetadataCreatorID": "internalId"})
@@ -111,14 +151,13 @@ df_joined_3 = merge(canvas, creator, on="internalID", how="left")
 
 # print(collection)
 # print(manifest)
-# print(canvas)
+# print(can-vas)
 # print(creator)
 # print(df_joined)
 # print(df_joined_2)
 # print(df_joined_3)
 
 
-<<<<<<< HEAD
 # with connect("annotations_metadata.db") as con:
 #     creator.to_sql("Creator", con, if_exists="replace", index=False)
 #     collection.to_sql("Collection", con, if_exists="replace", index=False)
@@ -140,23 +179,22 @@ df_joined_3 = merge(canvas, creator, on="internalID", how="left")
 #     df_sql_2 = read_sql(query_2, con)
 #     df_sql_3 = read_sql(query_3, con)
     
-=======
-with connect("annotations_metadata.db") as con:
-    creator.to_sql("Creator", con, if_exists="replace", index=False)
-    collection.to_sql("Collection", con, if_exists="replace", index=False)
-    manifest.to_sql("Manifest", con, if_exists="replace", index=False)
-    canvas.to_sql("Canvas", con, if_exists="replace", index=False)
-    body.to_sql("Body", con, if_exists="replace", index=False)
-    target.to_sql("Target", con, if_exists="replace", index=False)
-    motivation.to_sql("Motivation", con, if_exists="replace", index=False)
-    annotations_ids.to_sql("Annotations", con, if_exists="replace", index=False)
+# with connect("annotations_metadata.db") as con:
+#     creator.to_sql("Creator", con, if_exists="replace", index=False)
+#     collection.to_sql("Collection", con, if_exists="replace", index=False)
+#     manifest.to_sql("Manifest", con, if_exists="replace", index=False)
+#     canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+#     body.to_sql("Body", con, if_exists="replace", index=False)
+#     target.to_sql("Target", con, if_exists="replace", index=False)
+#     motivation.to_sql("Motivation", con, if_exists="replace", index=False)
+#     annotations_ids.to_sql("Annotations", con, if_exists="replace", index=False)
 #     # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
 #     # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
 #     # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
 #     # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
 #     # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
 #     # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
-    con.commit()
+    # con.commit()
 # with connect("annotations.db") as con:
 #     body.to_sql("Body", con, if_exists="replace", index=False)
 #     target.to_sql("Target", con, if_exists="replace", index=False)
@@ -182,7 +220,6 @@ with connect("annotations_metadata.db") as con:
 #     df_sql_2 = read_sql(query_2, con)
 #     df_sql_3 = read_sql(query_3, con)
     
->>>>>>> 22cfa398103e86327513d671ea0abe314ec9abd5
 # print(df_sql)
 # print(df_sql_2["collectionID"])
 # print(df_sql_3)
