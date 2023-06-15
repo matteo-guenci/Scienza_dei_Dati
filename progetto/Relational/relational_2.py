@@ -24,8 +24,11 @@ image = image.rename(columns={"body":"image_url"})
 df_joined = merge(annotations, image, left_on="body", right_on="image_url")
 annotations = df_joined[["id", "imageID", "target", "motivation"]]
 annotations = annotations.rename(columns={"imageID":"body"})
+<<<<<<< HEAD
 # print(image)
 print(annotations)
+=======
+>>>>>>> 96d66ce7596781ab18da21f96bde8407ffb82092
 metadata.insert(0, "internalID", Series(metadata["id"].apply(extract_id), dtype="string"))
 
 
@@ -44,20 +47,20 @@ canvas_id = ""
 for word, row in metadata.iterrows():
     if "collection" in row["id"]:
         collection_id = row["internalID"]
-        collection = collection._append(row[["id", "internalID"]])
+        collection = collection.append(row[["id", "internalID"]])
     if "manifest" in row["id"]:
         manifest_id = row["internalID"]
-        manifest = manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
+        manifest = manifest.append(row[["id", "internalID"]].append(Series({"collectionID":collection_id})), ignore_index=True)
     if "canvas" in row["id"]:
-        canvas = canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
+        canvas = canvas.append(row[["id", "internalID"]].append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
 
 # df_joined = merge(collection, creator, on="internalID", how="left")
 # df_joined_2 = merge(manifest, creator, on="internalID", how="left")
 # df_joined_3 = merge(canvas, creator, on="internalID", how="left")
 
-# print(df_joined)
-# print(df_joined_2)
-# print(df_joined_3)
+print(collection)
+print(manifest)
+print(canvas)
 
 # with connect("annotations_metadata_2.db") as con:
 #     creator.to_sql("Creator", con, if_exists="replace", index=False)

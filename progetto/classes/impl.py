@@ -3,6 +3,9 @@ from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
 from json import load
 from rdflib import *
 from sparql_dataframe import get
+from sqlite3 import connect
+import pandas as pd
+import re
 
 class Processor (object):
     def __init__(self):
@@ -19,7 +22,96 @@ class QueryProcessor (Processor):
         self.Entity=DataFrame()
     
     def getEntityById(id:str):
-        pass
+        pass   #RIEMPIRE!!!
+                ##########
+                ###########
+
+class AnnotationProcessor (Processor):
+    def __init__(self):
+        self.Annotation=DataFrame()
+        self.Image=DataFrame()
+
+    def uploadData (self, path:str):
+
+        def extract_id(s):               #aggiunto
+            pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
+            if pattern not in s:
+                return None
+            else:
+                return pattern
+            pass
+
+        self.Annotation = read_csv(path, keep_default_na=False, dtype={"id":"string",
+                                                                             "body":"string",
+                                                                             "target":"string",
+                                                                             "motivations":"string"})
+        self.Image = self.Annotation[["body"]]
+        self.Image.insert(0, "imageID", Series(self.Annotation["body"].apply(extract_id), dtype="string"))
+        self.Image = self.Image.rename(columns={"body":"image_url"})
+            # annotations_j = annotations_j.rename(columns={"internalID_x":"internalID", "id_x":"id", "internalID_y":"target"})
+
+        df_joined = merge(self.Annotation, self.Image, left_on="body", right_on="image_url")
+        self.Annotation = df_joined[["id", "imageID", "target", "motivation"]]
+        self.Annotation = self.Annotation.rename(columns={"imageID":"body"})
+
+        with connect(self.dbPathOrUrl) as con:
+            self.Image.to_sql("Image", con, if_exists="replace", index=False)
+            self.Annotation.to_sql("Annotation", con, if_exists="replace", index=False)
+            con.commit()
+
+class MetadataProcessor (Processor):
+    def __init__(self):
+        self.Collection=DataFrame()
+        self.Manifest=DataFrame()
+        self.Canvas=DataFrame()
+        self.Metadata=DataFrame()
+        self.Creator=DataFrame()
+
+    def uploadData (self, path:str):
+
+        def extract_id(s):               #aggiunto
+            pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
+            if pattern not in s:
+                return None
+            else:
+                return pattern
+            pass
+
+        
+        self.Metadata = read_csv(path, keep_default_na=False, dtype={"id":"string",
+                                                                       "title":"string",
+                                                                       "creator":"string"})
+        
+        self.Metadata.insert(0, "internalID", Series(self.Metadata["id"].apply(extract_id), dtype="string"))
+
+
+        self.Creator = self.Metadata[["creator", "title", "internalID"]] 
+        
+
+        collection_id = ""
+        manifest_id = ""
+        canvas_id = ""
+        for word, row in self.Metadata.iterrows():
+            if "collection" in row["id"]:
+                collection_id = row["internalID"]
+                self.Collection = self.Collection._append(row[["id", "internalID"]])
+            if "manifest" in row["id"]:
+                manifest_id = row["internalID"]
+                self.Manifest = self.Manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
+            if "canvas" in row["id"]:
+                self.Canvas = self.Canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
+        with connect(self.dbPathOrUrl) as con:
+            self.Creator.to_sql("Creator", con, if_exists="replace", index=False)
+            self.Collection.to_sql("Collection", con, if_exists="replace", index=False)
+            self.Manifest.to_sql("Manifest", con, if_exists="replace", index=False)
+            self.Canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+            con.commit()
+
+        print(self.Collection)
+        print(self.Manifest)
+        print(self.Canvas)
+        print(self.Creator)
+
     
 class CollectionProcessor(Processor):
     def __init__(self):
