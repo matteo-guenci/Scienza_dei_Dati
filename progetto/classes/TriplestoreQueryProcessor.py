@@ -25,7 +25,7 @@ class triplestoreQueryProcessor(object):
      self.Manifest_Collections=DataFrame()
      self.endpoint=""
 
-    def setDbPathOrURl(self, path):
+    def setDbPathOrUrl(self, path):
          self.endpoint = path
     
     def getAllCanvases(self):

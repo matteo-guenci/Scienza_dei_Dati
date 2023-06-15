@@ -5,110 +5,71 @@ from json import load
 from rdflib import *
 from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
 
-#impostazione della creazione di URI: 
-#primo metodo == utilizzare risorse esistenti ad esempio su schema.org
-#Image = URIRef("https://schema.org/ImageObject")
-#Collection = URIRef("https://schema.org/Collection")
-#secondo metodo == create your own. In the latter case, you have to remind to use an URL you are in control of 
-# (e.g. your website or GitHub repository). For instance, a possible pattern for defining your own name 
-# for the class `Book` could be `https://<your website>/Book` (e.g. `https://essepuntato.it/Book`).
+class collectionProcessor():
+    def __init__(self):
+        self.path=""
+        self.endpoint=""
+        self.iiif_prezi = Namespace("http://iiif.io/api/presentation/3#")
+        self.ast = Namespace("http://www.w3.org/ns/activitystreams#")
+        self.rdf= Namespace("http://www.w3.org/2000/01/rdf-schema#")
 
-#Collection = URIRef("https://github.com/matteo-guenci/Scienza_dei_Dati/Collection") #(?)
-#Manifest = URIRef("https://github.com/matteo-guenci/Scienza_dei_Dati/Manifest")
-#Canvas = URIRef("https://github.com/matteo-guenci/Scienza_dei_Dati/Canvas")
+    def setDbPathOrUrl (self, url:str):
+        self.endpoint=url
 
+    def uploadData (self, path:str):
+         
+         def fill (father, json_doc):
+            for i in json_doc:
+                if i == "id":
+                    id=URIRef(json_doc[i])
+                    if father:
+                        k_graph.add((father, Item, id))
+                    
+                if i == "type":
+                    k_graph.add((id, RDF.type, URIRef(self.iiif_prezi+json_doc[i])))
+                if i == "label":
+                    for j in json_doc[i]:
+                        for k in json_doc[i][j]:
+                            k_graph.add((id, Label, Literal(k)))
+                if i == "items":
+                    for j in json_doc[i]:
+                        fill (id, j)
+                else: pass
 
-
-#Esempio lezioni handson
-# # classes of resources
-# JournalArticle = URIRef("https://schema.org/ScholarlyArticle")
-# BookChapter = URIRef("https://schema.org/Chapter")
-# Journal = URIRef("https://schema.org/Periodical")
-# Book = URIRef("https://schema.org/Book")
-
-# # attributes related to classes
-# doi = URIRef("https://schema.org/identifier")
-# publicationYear = URIRef("https://schema.org/datePublished")
-# title = URIRef("https://schema.org/name")
-# issue = URIRef("https://schema.org/issueNumber")
-# volume = URIRef("https://schema.org/volumeNumber")
-# identifier = URIRef("https://schema.org/identifier")
-# name = URIRef("https://schema.org/name")
-
-# # relations among classes
-# publicationVenue = URIRef("https://schema.org/isPartOf")
-
-with open("./data/collection-1.json", "r", encoding="utf-8") as f:
-    json_doc1 = load(f)
-
-with open("./data/collection-2.json", "r", encoding="utf-8") as f:
-    json_doc2 = load(f)
-
-iiif_prezi = Namespace("http://iiif.io/api/presentation/3#")
-ast = Namespace("http://www.w3.org/ns/activitystreams#")
-rdf= Namespace("http://www.w3.org/2000/01/rdf-schema#")
-
-k_graph= Graph()
-
-k_graph.bind("iiif_prezi", iiif_prezi)
-k_graph.bind("ast", ast)
-k_graph.bind("rdf", rdf)
-
-Item = URIRef (ast+"items")
-Label=URIRef (rdf+"label")
-
-def fill (father, json_doc):
-    for i in json_doc:
-        if i == "id":
-            id=URIRef(json_doc[i])
-            if father:
-                k_graph.add((father, Item, id))
+            self.path=path
             
-        if i == "type":
-            k_graph.add((id, RDF.type, URIRef(iiif_prezi+json_doc[i])))
-        if i == "label":
-            for j in json_doc[i]:
-                for k in json_doc[i][j]:
-                    k_graph.add((id, Label, Literal(k)))
-        if i == "items":
-            for j in json_doc[i]:
-                fill (id, j)
-        else: pass
+            with open(path, "r", encoding="utf-8") as f:
+                json_doc1 = load(f)
 
-fill(None, json_doc1)
-fill(None, json_doc2)
-    
+            # with open("./data/collection-2.json", "r", encoding="utf-8") as f:
+            #     json_doc2 = load(f)
 
-# for i in json_doc:
-#     if i == "id":
-#         id=URIRef(json_doc[i])
-#     if i == "type":
-#         k_graph.add((id, RDF.type, URIRef(iiif_prezi+json_doc[i])))
-#     if i == "label":
-#         for j in json_doc[i]:
-#             for k in json_doc[i][j]:
-#                 k_graph.add((id, Label, Literal(k)))
-#     if i == "items":
-#         for j in json_doc[i]:
-#             level (id, j)
-#     else: pass
+            k_graph= Graph()
 
-    
+            k_graph.bind("iiif_prezi", self.iiif_prezi)
+            k_graph.bind("ast", self.ast)
+            k_graph.bind("rdf", self.rdf)
 
-store = SPARQLUpdateStore()
+            Item = URIRef (self.ast+"items")
+            Label=URIRef (self.rdf+"label")
 
-# The URL of the SPARQL endpoint is the same URL of the Blazegraph
-# instance + '/sparql'
-endpoint = 'http://127.0.0.1:9999/blazegraph/sparql'
+            fill(None, json_doc1)
+                    
 
-# It opens the connection with the SPARQL endpoint instance
-store.open((endpoint, endpoint))
+            store = SPARQLUpdateStore()
 
-#delete_query="""DELETE WHERE {?s ?p ?o.}"""
+            # The URL of the SPARQL endpoint is the same URL of the Blazegraph
+            # instance + '/sparql'
+            
 
-for triple in k_graph.triples((None, None, None)):
-    store.add(triple)
-    
-#store.update(delete_query)
-# Once finished, remeber to close the connection
-store.close()
+            # It opens the connection with the SPARQL endpoint instance
+            store.open((self.endpoint, self.endpoint))
+
+            #delete_query="""DELETE WHERE {?s ?p ?o.}"""
+
+            for triple in k_graph.triples((None, None, None)):
+                store.add(triple)
+                
+            #store.update(delete_query)
+            # Once finished, remeber to close the connection
+            store.close()

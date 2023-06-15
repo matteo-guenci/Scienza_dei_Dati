@@ -1,11 +1,6 @@
 from CollectionProcessor import collectionProcessor
 from TriplestoreQueryProcessor import triplestoreQueryProcessor
-from rdflib import URIRef, Literal, RDF
-from pandas import read_csv, Series
-from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
-from json import load
-from rdflib import *
-from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
+
 
 # Then, create the RDF triplestore (remember first to run the
 # Blazegraph instance) using the related source data
