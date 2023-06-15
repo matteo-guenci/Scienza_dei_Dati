@@ -11,7 +11,8 @@ annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id
 #su annotations si può applicare extract_id e ottenere un internal id, dopodiché creare i dataframe necessari
 # for idx, row in venues_ids.iterrows():
 #     venue_internal_id.append("venue-" + str(idx))
-my_Dataframe = DataFrame(annotations)
+prova = DataFrame(annotations)
+print(prova)
 
 metadata = read_csv("data/metadata.csv", keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
@@ -82,36 +83,36 @@ manifest = manifest.rename(columns={"EntityWithMetadataCreatorID": "internalId"}
 canvas = df_joined_3[["id", "title", "EntityWithMetadataCreatorID", "manifestID", "collectionID"]]
 canvas = canvas.rename(columns={"EntityWithMetadataCreatorID": "internalId"})
 
-print(collection)
-print(manifest)
-print(canvas)
-print(creator)
+# print(collection)
+# print(manifest)
+# print(canvas)
+# print(creator)
 # print(df_joined)
 # print(df_joined_2)
 # print(df_joined_3)
 
 
-with connect("annotations_metadata.db") as con:
-    creator.to_sql("Creator", con, if_exists="replace", index=False)
-    collection.to_sql("Collection", con, if_exists="replace", index=False)
-    manifest.to_sql("Manifest", con, if_exists="replace", index=False)
-    canvas.to_sql("Canvas", con, if_exists="replace", index=False)
-    con.commit()
+# with connect("annotations_metadata.db") as con:
+#     creator.to_sql("Creator", con, if_exists="replace", index=False)
+#     collection.to_sql("Collection", con, if_exists="replace", index=False)
+#     manifest.to_sql("Manifest", con, if_exists="replace", index=False)
+#     canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+#     con.commit()
 
-with connect("annotations_metadata.db") as con:
-    query = "SELECT title FROM Collection"
-    query_2 = "SELECT * FROM Manifest"
-    query_3 = """SELECT id
-                FROM Manifest
-                WHERE internalID='2/28429/canvas/p1'
-                UNION
-                SELECT id
-                FROM Canvas
-                WHERE internalID='2/28429/canvas/p1'"""
-    df_sql = read_sql(query, con)
-    df_sql_2 = read_sql(query_2, con)
-    df_sql_3 = read_sql(query_3, con)
+# with connect("annotations_metadata.db") as con:
+#     query = "SELECT title FROM Collection"
+#     query_2 = "SELECT * FROM Manifest"
+#     query_3 = """SELECT id
+#                 FROM Manifest
+#                 WHERE internalID='2/28429/canvas/p1'
+#                 UNION
+#                 SELECT id
+#                 FROM Canvas
+#                 WHERE internalID='2/28429/canvas/p1'"""
+#     df_sql = read_sql(query, con)
+#     df_sql_2 = read_sql(query_2, con)
+#     df_sql_3 = read_sql(query_3, con)
     
-print(df_sql)
-print(df_sql_2["collectionID"])
-print(df_sql_3)
+# print(df_sql)
+# print(df_sql_2["collectionID"])
+# print(df_sql_3)
