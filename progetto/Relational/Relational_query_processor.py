@@ -56,9 +56,8 @@ class Relational_query_processor(object):
     
     
     def getEntitiesWithCreator(creator):
-        target_creator = creator
         with connect("annotations_metadata_2.db") as con:
-            query = """SELECT creator, title, Collection.internalID, Manifest.internalID, Canvas.internalID
+            query = """SELECT Creator.creator, Creator.title, Collection.internalID, Manifest.internalID, Canvas.internalID
              FROM Creator
              LEFT JOIN Collection ON Creator.internalID = Collection.internalID
              LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
@@ -76,8 +75,8 @@ class Relational_query_processor(object):
         result = read_sql(query, con, params=(title,))
         return result
 
-# print(Relational_query_processor.getEntitiesWithCreator("Raimondi, Giuseppe"))
-print(Relational_query_processor.getEntitiesWithTitle("Raimondi, Giuseppe. Quaderno manoscritto"))
+print(Relational_query_processor.getEntitiesWithCreator("Raimondi, Giuseppe"))
+#print(Relational_query_processor.getEntitiesWithTitle("Raimondi, Giuseppe. Quaderno manoscritto, ""Caserma Scalo : 1930-1968"""))
 # print(Relational_query_processor.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg"))
 # print(Relational_query_processor.getAnnotationsWithTarget("https://dl.ficlit.unibo.it/iiif/2/28429/canvas/p1"))
 # print(Relational_query_processor.getAnnotationsWithBodyAndTarget("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg", "https://dl.ficlit.unibo.it/iiif/2/28429/canvas/p1")) 
