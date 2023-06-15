@@ -108,3 +108,24 @@ print(Relational_query_processor.getEntitiesWithCreator("Raimondi, Giuseppe"))
 #             LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
 #             LEFT JOIN Canvas ON Creator.internalID = Canvas.manifestID
 #             WHERE creator=?"""
+
+# SELECT 
+#     C.id AS collection_id,
+#     C.internal_id AS collection_internal_id,
+#     M.id AS manifest_id,
+#     M.internal_id AS manifest_internal_id,
+#     V.id AS canvas_id,
+#     V.internal_id AS canvas_internal_id,
+#     CI.creator AS creator,
+#     CI.title AS title
+# FROM 
+#     Collection AS C
+# LEFT JOIN 
+#     Manifest AS M ON C.id = M.collection_id
+# LEFT JOIN 
+#     Canvas AS V ON M.id = V.manifest_id AND C.id = V.collection_id
+# INNER JOIN 
+#     Creator_item AS CI ON (CI.internal_id = C.internal_id OR CI.internal_id = M.internal_id)
+# WHERE 
+#     CI.creator = 'input-creator'
+
