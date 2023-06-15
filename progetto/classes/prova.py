@@ -13,6 +13,5 @@ col_dp.uploadData("././data/collection-2.json")
 grp_qp = triplestoreQueryProcessor()
 grp_qp.setDbPathOrUrl(grp_endpoint)
 
-result_q1 = grp_qp.getAllCanvases()
 
-print (result_q1)
+print (grp_qp.getAllCanvases())
