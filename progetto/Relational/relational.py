@@ -31,62 +31,30 @@ annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id
 # df_joined_5 = merge(target, annotations_ids, on="internalID", how="left")
 # df_joined_6 = merge(motivation, annotations_ids, on="internalID", how="left")
 
-# print(annotations_ids)
-# print(body)
-# print(target)
-# print(motivation)
-# print(df_joined_4)
-# print(df_joined_5)
-# print(df_joined_6)
 
 metadata = read_csv("data/metadata.csv", keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
                                                                        "creator":"string"})
 #metadata non dovrebbe avere sia "id" che "label"? (id ereditata e label sua) 
 metadata.insert(0, "internalID", Series(metadata["id"].apply(extract_id), dtype="string"))
-# creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))
 
 
 creator = metadata[["creator", "title", "internalID"]] 
-# if ";" in creator:
-#     creator = creator.split(";")
-#     for i in creator:
-
-# internal_ids=list(metadata["id"].apply(extract_id))   #aggiunto
-
-    
-# for i in range(len(internal_ids)):         #ho commentato la sezione perché nel modo qui di sopra si ottiene lo stesso risultato più velocemente
-#     internal_ids[i]=re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",internal_ids[i]).group()
-    #ids[i]=re.search(r"iiif\/(.+)$",ids[i])
-    #nuoviids[i]=re.search(r"iiif\/(.+)$",ids[i])
-#print (ids)
-
-
-
-# metadata_internal_id = []
-# for idx, row in creator.iterrows():
-#     metadata_internal_id.append(str(idx))
 
 # creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))  
 #ma per creare "creator" non basterebbe prendere metadata selezionando solo id, internal id e creator e fare il rename su internalID? senza fare tutti questi procedimenti di metti e togli
 
-# venues_ids.insert(0, "venueId", Series(venue_internal_id, dtype="string"))
 
-# print(metadata_internal_id)
-#print(creator)
-#word_to_find = "collection"
-# collection = metadata.query("id.str.contains(@word_to_find, case=False)")
-#print(collection)
 collection = DataFrame()
 manifest = DataFrame()
 canvas = DataFrame()
 collection_id = ""
 manifest_id = ""
 canvas_id = ""
-for word, row in metadata.iterrows():      #modificato
+for word, row in metadata.iterrows():
     if "collection" in row["id"]:
         collection_id = row["internalID"]
-        collection = collection._append(row[["id", "internalID"]])   #filtered_df = pd.concat([filtered_df, row], axis=1)
+        collection = collection._append(row[["id", "internalID"]])
     if "manifest" in row["id"]:
         manifest_id = row["internalID"]
         manifest = manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
@@ -98,14 +66,14 @@ for word, row in metadata.iterrows():      #modificato
 df_joined = merge(collection, creator, on="internalID", how="left")
 df_joined_2 = merge(manifest, creator, on="internalID", how="left")
 df_joined_3 = merge(canvas, creator, on="internalID", how="left")
+print(manifest)
+print(df_joined_2)
 # df_joined = merge(collection[["id", "internalID"]], creator[["internalID", "title", "creator"]], on="internalID", how="left")
 # df_joined_2 = merge(manifest[["id", "internalID", "collectionID"]], creator[["internalID", "title", "creator"]], on="internalID", how="left")
 # df_joined_3 = merge(canvas[["id", "internalID", "manifestID", "collectionID"]], creator[["internalID", "title", "creator"]], on="internalID", how="left")
 # abbiamo specificato how="left" per mantenere solo le corrispondenze tra gli internalID nei DataFrame di origine.
 #i df_joined hanno sia la colonna internalId che EntityWithMetadataCreatorID che mostrano entrambe la stessa cosa
 annotations.insert(0, "internalID", Series(annotations["id"].apply(extract_id), dtype="string"))
-# annotations["target"] = metadata["internalID"]
-
 image = annotations[["body"]] 
 image.insert(0, "imageID", Series(annotations["body"].apply(extract_id), dtype="string")) #ci deve stare body e un internal id fatto da body, in annotation body sarà l'internal id di questo
 annotations_f=DataFrame()
@@ -128,7 +96,7 @@ try:
     else:
         annotations_f=annotations_j
 except:
-    print("Error")
+    print("No collection images found")
 try:
     annotations_j = merge(annotations, manifest, left_on="target", right_on="id", how="left")
     annotations_j = annotations_j[["internalID_x", "id_x", "body", "internalID_y", "motivation"]]
@@ -138,7 +106,7 @@ try:
     else:
         annotations_f=annotations_j
 except:
-    print("Error")
+    print("No manifest images found")
 
 print(annotations_f)
 
@@ -179,47 +147,17 @@ print(annotations_f)
 #     df_sql_2 = read_sql(query_2, con)
 #     df_sql_3 = read_sql(query_3, con)
     
-# with connect("annotations_metadata.db") as con:
-#     creator.to_sql("Creator", con, if_exists="replace", index=False)
-#     collection.to_sql("Collection", con, if_exists="replace", index=False)
-#     manifest.to_sql("Manifest", con, if_exists="replace", index=False)
-#     canvas.to_sql("Canvas", con, if_exists="replace", index=False)
-#     body.to_sql("Body", con, if_exists="replace", index=False)
-#     target.to_sql("Target", con, if_exists="replace", index=False)
-#     motivation.to_sql("Motivation", con, if_exists="replace", index=False)
-#     annotations_ids.to_sql("Annotations", con, if_exists="replace", index=False)
-#     # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
-#     # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
-#     # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
-#     # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
-#     # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
-#     # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
-    # con.commit()
-# with connect("annotations.db") as con:
-#     body.to_sql("Body", con, if_exists="replace", index=False)
-#     target.to_sql("Target", con, if_exists="replace", index=False)
-#     motivation.to_sql("Motivation", con, if_exists="replace", index=False)
-#     annotations_ids.to_sql("Annotations", con, if_exists="replace", index=False)
-#     # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
-#     # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
-#     # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
-#     con.commit()
-    
-
-# with connect("annotations_metadata.db") as con:
-#     query = "SELECT title FROM Collection"
-#     query_2 = "SELECT * FROM Manifest"
-#     query_3 = """SELECT id
-#                 FROM Manifest
-#                 WHERE internalID='2/28429/canvas/p1'
-#                 UNION
-#                 SELECT id
-#                 FROM Canvas
-#                 WHERE internalID='2/28429/canvas/p1'"""
-#     df_sql = read_sql(query, con)
-#     df_sql_2 = read_sql(query_2, con)
-#     df_sql_3 = read_sql(query_3, con)
-    
-# print(df_sql)
-# print(df_sql_2["collectionID"])
-# print(df_sql_3)
+with connect("annotations_metadata.db") as con:
+    creator.to_sql("Creator", con, if_exists="replace", index=False)
+    collection.to_sql("Collection", con, if_exists="replace", index=False)
+    manifest.to_sql("Manifest", con, if_exists="replace", index=False)
+    canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+    image.to_sql("Image", con, if_exists="replace", index=False)
+    annotations_f.to_sql("Annotation", con, if_exists="replace", index=False)
+    # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
+    # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
+    # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
+    # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
+    # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
+    # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
+    con.commit()
