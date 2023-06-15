@@ -77,9 +77,16 @@ class MetadataProcessor (Processor):
                 return pattern
             pass
 
+        
         self.Metadata = read_csv(path, keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
                                                                        "creator":"string"})
+        
+        self.Metadata.insert(0, "internalID", Series(self.Metadata["id"].apply(extract_id), dtype="string"))
+
+
+        self.Creator = self.Metadata[["creator", "title", "internalID"]] 
+        
 
         collection_id = ""
         manifest_id = ""
@@ -93,7 +100,6 @@ class MetadataProcessor (Processor):
                 self.Manifest = self.Manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
             if "canvas" in row["id"]:
                 self.Canvas = self.Canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
-
         with connect(self.dbPathOrUrl) as con:
             self.Creator.to_sql("Creator", con, if_exists="replace", index=False)
             self.Collection.to_sql("Collection", con, if_exists="replace", index=False)
