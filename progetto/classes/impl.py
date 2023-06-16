@@ -79,6 +79,18 @@ class MetadataProcessor (Processor):
                 return pattern
             pass
 
+        def is_part_of(x, y, type_1, type_2):
+            x = x.strip("/" + type_1)
+            y = y.strip("/" + type_2)
+            x = x.split("/")
+            y = y.split("/")
+            if type_2 == "manifest":
+                if y[1] in x[0]:
+                    return True
+            if type_2 == "canvas":
+                if y[1] in x[1] and y[0] in x[0]:
+                    return True
+
         
         self.Metadata = read_csv(path, keep_default_na=False, dtype={"id":"string",
                                                                        "title":"string",
@@ -102,17 +114,46 @@ class MetadataProcessor (Processor):
                 self.Manifest = self.Manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
             if "canvas" in row["id"]:
                 self.Canvas = self.Canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
+        
+        for index, row in self.Collection.iterrows():
+            # Iterate over rows in 'metadata' DataFrame
+            for index_2, row_2 in self.Metadata.iterrows():
+                if "manifest" in row_2["id"]:
+                    # print (row["id"], row_2["id"], is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"))
+                    if is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"):
+                        # Create a temporary DataFrame with the desired values
+                        temp_df = DataFrame({"collection_id": [row["internalID"]], "manifest_id": [row_2["internalID"]]})
+                        # Append the temporary DataFrame to 'collection_items'
+                        self.Collection_items = self.Collection_items._append(temp_df)
+        self.Collection_items = self.Collection_items.reset_index(drop=True)
+
+        # Iterate over rows in 'manifest' DataFrame
+        for index, row in self.Manifest.iterrows():
+            # Iterate over rows in 'metadata' DataFrame
+            for index_2, row_2 in self.Metadata.iterrows():
+                if "canvas" in row_2["id"]:
+                    if is_part_of(row["internalID"], row_2["internalID"], "manifest", "canvas"):
+                        # Create a temporary DataFrame with the desired values
+                        temp_df = DataFrame({"manifest_id": [row["internalID"]], "canvas_id": [row_2["internalID"]]})
+                        # Append the temporary DataFrame to 'manifest_items'
+                        self.Manifest_items = self.Manifest_items._append(temp_df)
+        self.Manifest_items = self.Manifest_items.reset_index(drop=True)
+
         with connect(self.dbPathOrUrl) as con:
             self.Creator.to_sql("Creator", con, if_exists="replace", index=False)
             self.Collection.to_sql("Collection", con, if_exists="replace", index=False)
             self.Manifest.to_sql("Manifest", con, if_exists="replace", index=False)
             self.Canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+            self.Collection_items.to_sql("Collection_Items", con, if_exists="replace", index=False)
+            self.Manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
             con.commit()
 
         print(self.Collection)
         print(self.Manifest)
         print(self.Canvas)
         print(self.Creator)
+        print(self.Collection_items)
+        print(self.Manifest_items)
 
     
 class CollectionProcessor(Processor):
