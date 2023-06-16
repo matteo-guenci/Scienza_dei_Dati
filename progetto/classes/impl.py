@@ -70,7 +70,11 @@ class MetadataProcessor (Processor):
         self.Manifest_items=DataFrame()
 
     def uploadData (self, path:str):
-
+        
+        def replacer(j):
+            return j.replace('""', '"')
+        
+        
         def extract_id(s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
@@ -105,7 +109,6 @@ class MetadataProcessor (Processor):
         collection_id = ""
         manifest_id = ""
         canvas_id = ""
-        
         for word, row in self.Metadata.iterrows():
             if "collection" in row["id"]:
                 collection_id = row["internalID"]
@@ -338,7 +341,9 @@ class RelationalQueryProcessor (QueryProcessor):
         self.Images = DataFrame()
         self.entities = DataFrame()
         # self.query_processor = query_processor
-
+    def replacer(self, j):
+        return j.replace('""', '"')
+    
     def extract_id(self, s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
@@ -388,6 +393,9 @@ class RelationalQueryProcessor (QueryProcessor):
             WHERE target =?"""
         result = read_sql(query, con, params=(target,))
         return result
+
+        
+    
     
     def getEntitiesWithCreator(self,creator):
         with connect(self.dbPathOrUrl) as con:
@@ -402,18 +410,18 @@ class RelationalQueryProcessor (QueryProcessor):
         return result
     
     def getEntitiesWithTitle(self, title):
-        title = title.replace('""', '"')
+        print(title)
+        title = self.replacer(title)
+        print(title)
         with connect(self.dbPathOrUrl) as con:
-           
             query = """
-SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
-FROM Creator
-LEFT JOIN Collection ON Creator.internalID = Collection.internalID
-LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
-LEFT JOIN Canvas ON Creator.internalID = Canvas.internalID
-WHERE ? IN (Collection.title, Manifest.title, Canvas.title)
-"""
-
+                    SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
+                    FROM Creator
+                    LEFT JOIN Collection ON Creator.internalID = Collection.internalID
+                    LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
+                    LEFT JOIN Canvas ON Creator.internalID = Canvas.internalID
+                    WHERE ? IN (Collection.title, Manifest.title, Canvas.title)
+                    """
         result = read_sql(query, con, params=(title,))
         return result
 
