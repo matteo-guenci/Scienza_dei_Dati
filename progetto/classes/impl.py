@@ -148,12 +148,12 @@ class MetadataProcessor (Processor):
             self.Manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
             con.commit()
 
-        print(self.Collection)
-        print(self.Manifest)
-        print(self.Canvas)
-        print(self.Creator)
-        print(self.Collection_items)
-        print(self.Manifest_items)
+        # print(self.Collection)
+        # print(self.Manifest)
+        # print(self.Canvas)
+        # print(self.Creator)
+        # print(self.Collection_items)
+        # print(self.Manifest_items)
 
     
 class CollectionProcessor(Processor):
@@ -346,7 +346,7 @@ class RelationalQueryProcessor (QueryProcessor):
             pass
     
     def getAllAnnotations(self):
-        with connect("annotations_metadata_2.db") as con:
+        with connect(self.dbPathOrUrl) as con:
             query = """SELECT *
             FROM Annotation"""
         result = read_sql(query, con)
@@ -354,7 +354,7 @@ class RelationalQueryProcessor (QueryProcessor):
     
         
     def getAllImages(self):
-        with connect("annotations_metadata_2.db") as con:
+        with connect(self.dbPathOrUrl) as con:
             query = """SELECT image_url
             FROM Image"""
         results = read_sql(query, con)
@@ -362,7 +362,7 @@ class RelationalQueryProcessor (QueryProcessor):
 
     def getAnnotationsWithBody(self,body):
         body = self.extract_id(body)
-        with connect("annotations_metadata_2.db") as con:
+        with connect(self.dbPathOrUrl) as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
             WHERE body = ?"""
@@ -372,7 +372,7 @@ class RelationalQueryProcessor (QueryProcessor):
    
     def getAnnotationsWithBodyAndTarget(self, body, target):
         body = self.extract_id(body)
-        with connect("annotations_metadata_2.db") as con:
+        with connect(self.dbPathOrUrl) as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
             WHERE body = ? AND target =?"""
@@ -380,7 +380,7 @@ class RelationalQueryProcessor (QueryProcessor):
         return results
 
     def getAnnotationsWithTarget(self, target):
-        with connect("annotations_metadata_2.db") as con:
+        with connect(self.dbPathOrUrl) as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
             WHERE target =?"""
@@ -391,7 +391,7 @@ class RelationalQueryProcessor (QueryProcessor):
     
     
     def getEntitiesWithCreator(self,creator):
-        with connect(self.dbPathOrURl) as con:
+        with connect(self.dbPathOrUrl) as con:
             query = """ SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
                     FROM Creator
                     LEFT JOIN Collection ON Creator.internalID = Collection.internalID
