@@ -22,3 +22,9 @@ ann_dp.uploadData("././data/annotations.csv")
 met_dp = MetadataProcessor()
 met_dp.setDbPathOrUrl(rel_path)
 met_dp.uploadData("././data/metadata.csv")
+
+rel_qp = RelationalQueryProcessor()
+rel_qp.setDbPathOrUrl(rel_path)
+
+print (rel_qp.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg"))
+
