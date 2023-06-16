@@ -105,15 +105,16 @@ class MetadataProcessor (Processor):
         collection_id = ""
         manifest_id = ""
         canvas_id = ""
+        
         for word, row in self.Metadata.iterrows():
             if "collection" in row["id"]:
                 collection_id = row["internalID"]
-                self.Collection = self.Collection._append(row[["id", "internalID"]])
+                self.Collection = self.Collection._append(row[["id", "internalID", "title"]])
             if "manifest" in row["id"]:
                 manifest_id = row["internalID"]
-                self.Manifest = self.Manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
+                self.Manifest = self.Manifest._append(row[["id", "internalID", "title"]])
             if "canvas" in row["id"]:
-                self.Canvas = self.Canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
+                self.Canvas = self.Canvas._append(row[["id", "internalID", "title"]])
         
         for index, row in self.Collection.iterrows():
             # Iterate over rows in 'metadata' DataFrame
@@ -387,9 +388,6 @@ class RelationalQueryProcessor (QueryProcessor):
             WHERE target =?"""
         result = read_sql(query, con, params=(target,))
         return result
-
-        
-    
     
     def getEntitiesWithCreator(self,creator):
         with connect(self.dbPathOrUrl) as con:
