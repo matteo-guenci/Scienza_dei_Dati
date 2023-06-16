@@ -92,7 +92,7 @@ for index, row in collection.iterrows():
             # print (row["id"], row_2["id"], is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"))
             if is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"):
                 # Create a temporary DataFrame with the desired values
-                temp_df = DataFrame({"collection_id": [row["id"]], "manifest_id": [row_2["id"]]})
+                temp_df = DataFrame({"collection_id": [row["internalID"]], "manifest_id": [row_2["internalID"]]})
                 # Append the temporary DataFrame to 'collection_items'
                 collection_items = collection_items._append(temp_df)
 collection_items = collection_items.reset_index(drop=True)
@@ -104,7 +104,7 @@ for index, row in manifest.iterrows():
         if "canvas" in row_2["id"]:
             if is_part_of(row["internalID"], row_2["internalID"], "manifest", "canvas"):
                 # Create a temporary DataFrame with the desired values
-                temp_df = DataFrame({"manifest_id": [row["id"]], "canvas_id": [row_2["id"]]})
+                temp_df = DataFrame({"manifest_id": [row["internalID"]], "canvas_id": [row_2["internalID"]]})
                 # Append the temporary DataFrame to 'manifest_items'
                 manifest_items = manifest_items._append(temp_df)
 manifest_items = manifest_items.reset_index(drop=True)
@@ -144,20 +144,23 @@ manifest_items = manifest_items.reset_index(drop=True)
 # print(collection)
 # print(manifest)
 # print(canvas)
+# print(creator)
 print(collection_items)
-
 print(manifest_items)
-# with connect("annotations_metadata_2.db") as con:
-#     creator.to_sql("Creator", con, if_exists="replace", index=False)
-#     collection.to_sql("Collection", con, if_exists="replace", index=False)
-#     manifest.to_sql("Manifest", con, if_exists="replace", index=False)
-#     canvas.to_sql("Canvas", con, if_exists="replace", index=False)
-#     image.to_sql("Image", con, if_exists="replace", index=False)
-#     annotations.to_sql("Annotation", con, if_exists="replace", index=False)
-#     # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
-#     # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
-#     # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
-#     # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
-#     # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
-#     # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
-#     con.commit()
+with connect("annotations_metadata_2.db") as con:
+    creator.to_sql("Creator", con, if_exists="replace", index=False)
+    collection.to_sql("Collection", con, if_exists="replace", index=False)
+    manifest.to_sql("Manifest", con, if_exists="replace", index=False)
+    canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+    image.to_sql("Image", con, if_exists="replace", index=False)
+    annotations.to_sql("Annotation", con, if_exists="replace", index=False)
+    collection_items.to_sql("Collection_Items", con, if_exists="replace", index=False)
+    manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
+
+    # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
+    # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
+    # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)
+    # df_joined_4.to_sql("DFJoined_4", con, if_exists="replace", index=False)
+    # df_joined_5.to_sql("DFJoined_5", con, if_exists="replace", index=False)
+    # df_joined_6.to_sql("DFJoined_6", con, if_exists="replace", index=False)
+    con.commit()
