@@ -26,5 +26,5 @@ met_dp.uploadData("././data/metadata.csv")
 rel_qp = RelationalQueryProcessor()
 rel_qp.setDbPathOrUrl(rel_path)
 
-print (rel_qp.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg"))
+# print (rel_qp.getEntitiesWithTitle("Raimondi, Giuseppe. Quaderno manoscritto, ""Caserma Scalo : 1930-1968"""))
 

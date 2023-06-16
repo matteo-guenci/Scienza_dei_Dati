@@ -148,12 +148,12 @@ class MetadataProcessor (Processor):
             self.Manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
             con.commit()
 
-        # print(self.Collection)
-        # print(self.Manifest)
-        # print(self.Canvas)
-        # print(self.Creator)
-        # print(self.Collection_items)
-        # print(self.Manifest_items)
+        print(self.Collection)
+        print(self.Manifest)
+        print(self.Canvas)
+        print(self.Creator)
+        print(self.Collection_items)
+        print(self.Manifest_items)
 
     
 class CollectionProcessor(Processor):
@@ -405,7 +405,7 @@ class RelationalQueryProcessor (QueryProcessor):
     
     def getEntitiesWithTitle(self, title):
         title = title.replace('""', '"')
-        with connect("annotations_metadata_2.db") as con:
+        with connect(self.dbPathOrUrl) as con:
            
             query = """
 SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title

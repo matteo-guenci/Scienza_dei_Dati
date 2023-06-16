@@ -26,6 +26,7 @@ class Relational_query_processor(object):
         return results
 
     def getAnnotationsWithBody(body):
+        body = body.replace('""', '"')
         body = relational_2.extract_id(body)
         with connect("annotations_metadata_2.db") as con:
             query = """SELECT id, body, target, motivation
@@ -36,6 +37,8 @@ class Relational_query_processor(object):
     
    
     def getAnnotationsWithBodyAndTarget(body, target):
+        body = body.replace('""', '"')
+        target = target.replace('""', '"')
         body = relational_2.extract_id(body)
         with connect("annotations_metadata_2.db") as con:
             query = """SELECT id, body, target, motivation
@@ -45,6 +48,7 @@ class Relational_query_processor(object):
         return results
 
     def getAnnotationsWithTarget(target):
+        target = target.replace('""', '"')
         with connect("annotations_metadata_2.db") as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
@@ -56,6 +60,7 @@ class Relational_query_processor(object):
     
     
     def getEntitiesWithCreator(creator):
+        creator = creator.replace('""', '"')
         with connect("annotations_metadata_2.db") as con:
             query = """ SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
                     FROM Creator
@@ -83,8 +88,8 @@ WHERE ? IN (Collection.title, Manifest.title, Canvas.title)
         result = read_sql(query, con, params=(title,))
         return result
 
-print(Relational_query_processor.getEntitiesWithCreator("Doe, John; Doe, Jane"))
-print(Relational_query_processor.getEntitiesWithTitle('Raimondi, Giuseppe. Quaderno manoscritto, ""Caserma Scalo : 1930-1968""'))
+print(Relational_query_processor.getEntitiesWithCreator("Alighieri, Dante"))
+# print(Relational_query_processor.getEntitiesWithTitle('Raimondi, Giuseppe. Quaderno manoscritto, ""Caserma Scalo : 1930-1968""'))
 # print(Relational_query_processor.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg"))
 # print(Relational_query_processor.getAnnotationsWithTarget("https://dl.ficlit.unibo.it/iiif/2/28429/canvas/p1"))
 # print(Relational_query_processor.getAnnotationsWithBodyAndTarget("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg", "https://dl.ficlit.unibo.it/iiif/2/28429/canvas/p1")) 
