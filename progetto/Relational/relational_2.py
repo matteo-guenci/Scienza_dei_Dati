@@ -24,12 +24,13 @@ image = image.rename(columns={"body":"image_url"})
 df_joined = merge(annotations, image, left_on="body", right_on="image_url")
 annotations = df_joined[["id", "imageID", "target", "motivation"]]
 annotations = annotations.rename(columns={"imageID":"body"})
-print(image)
-print(annotations)
+# print(image)
+# print(annotations)
 metadata.insert(0, "internalID", Series(metadata["id"].apply(extract_id), dtype="string"))
 
 
 creator = metadata[["creator", "title", "internalID"]] 
+print(creator)
 
 # creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))  
 #ma per creare "creator" non basterebbe prendere metadata selezionando solo id, internal id e creator e fare il rename su internalID? senza fare tutti questi procedimenti di metti e togli
@@ -51,13 +52,13 @@ for word, row in metadata.iterrows():
     if "canvas" in row["id"]:
         canvas = canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
 
-# df_joined = merge(collection, creator, on="internalID", how="left")
-# df_joined_2 = merge(manifest, creator, on="internalID", how="left")
-# df_joined_3 = merge(canvas, creator, on="internalID", how="left")
+df_joined = merge(collection, creator, on="internalID", how="left")
+df_joined_2 = merge(manifest, creator, on="internalID", how="left")
+df_joined_3 = merge(canvas, creator, on="internalID", how="left")
 
-# print(df_joined)
-# print(df_joined_2)
-# print(df_joined_3)
+print(df_joined)
+print(df_joined_2)
+print(df_joined_3)
 
 with connect("annotations_metadata_2.db") as con:
     creator.to_sql("Creator", con, if_exists="replace", index=False)
