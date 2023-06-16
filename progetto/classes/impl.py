@@ -331,13 +331,14 @@ class TriplestoreQueryProcessor(QueryProcessor):
         return self.Manifest_Collections
     
 class RelationalQueryProcessor (QueryProcessor):
+
     def __init__(self):
         self.Annotation = DataFrame()
         self.Images = DataFrame()
         self.entities = DataFrame()
         # self.query_processor = query_processor
 
-    def extract_id(s):               #aggiunto
+    def extract_id(self, s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
                 return None
