@@ -61,8 +61,8 @@ class QueryProcessor (Processor):
 
             return None
         
-        type=find_type(id)
-        if type==""
+        # type=find_type(id)
+        # if type==""
         
 
 
