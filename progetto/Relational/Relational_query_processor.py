@@ -72,6 +72,9 @@ class Relational_query_processor(object):
     def getEntitiesWithTitle(title):
         title = title.replace('""', '"')
         with connect("annotations_metadata_2.db") as con:
+            query = """SELECT creator, title, Canvas.collectionID, Canvas.manifestID, Canvas.internalID
+            FROM Creator LEFT JOIN Canvas ON Creator.internalID = Canvas.collectionID
+            WHERE title=?"""
            
             query = """
 SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
@@ -117,6 +120,7 @@ print(Relational_query_processor.getAnnotationsWithBody("https://dl.ficlit.unibo
 #             LEFT JOIN Collection ON Creator.internalID = Collection.internalID
 #             LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
 #             LEFT JOIN Canvas ON Creator.internalID = Canvas.manifestID
+#             WHERE creator=?"""
 #             WHERE creator=?"""
 
 # SELECT 

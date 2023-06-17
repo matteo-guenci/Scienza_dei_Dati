@@ -8,19 +8,6 @@ def extract_id(s):               #aggiunto
         return None
     else:
         return pattern
-def is_part_of(x, y, type_1, type_2):
-    x = x.strip("/" + type_1)
-    y = y.strip("/" + type_2)
-    x = x.split("/")
-    y = y.split("/")
-    if type_2 == "manifest":
-        if y[1] in x[0]:
-            return True
-    if type_2 == "canvas":
-        if y[1] in x[1] and y[0] in x[0]:
-            return True
-        
-                
 annotations = read_csv("data/annotations.csv", keep_default_na=False, dtype={"id":"string",
                                                                              "body":"string",
                                                                              "target":"string",
@@ -42,7 +29,8 @@ print(annotations)
 metadata.insert(0, "internalID", Series(metadata["id"].apply(extract_id), dtype="string"))
 
 
-creator = metadata[["creator", "internalID"]] 
+creator = metadata[["creator", "title", "internalID"]] 
+print(creator)
 
 # creator.insert(0, "EntityWithMetadataCreatorID", Series(internal_ids, dtype="string"))  
 #ma per creare "creator" non basterebbe prendere metadata selezionando solo id, internal id e creator e fare il rename su internalID? senza fare tutti questi procedimenti di metti e togli
@@ -54,35 +42,23 @@ canvas = DataFrame()
 collection_id = ""
 manifest_id = ""
 canvas_id = ""
-
 for word, row in metadata.iterrows():
     if "collection" in row["id"]:
         collection_id = row["internalID"]
-        collection = collection._append(row[["id", "internalID", "title"]])
+        collection = collection._append(row[["id", "internalID"]])
     if "manifest" in row["id"]:
         manifest_id = row["internalID"]
-        manifest = manifest._append(row[["id", "internalID", "title"]])
+        manifest = manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
     if "canvas" in row["id"]:
-        canvas = canvas._append(row[["id", "internalID", "title"]])
-# df_joined = merge(collection, creator, on="internalID", how="left")
-# df_joined_2 = merge(manifest, creator, on="internalID", how="left")
-# df_joined_3 = merge(canvas, creator, on="internalID", how="left")
-collection_items = DataFrame()
-manifest_items = DataFrame()
-# collection_items = merge(collection, manifest, left_on=None, right_on=None, left_index=False, right_index=False, how='inner', sort=False)
-# for word, row in metadata.iterrows():
-#     if "collection" in row["id"]:
-#         collection_id = row["internalID"]
-#         collection = collection.append(row[["id", "internalID"]])
-#     if "manifest" in row["id"]:
-#         manifest_id = row["internalID"]
-#         manifest = manifest.append(row[["id", "internalID"]].append(Series({"collectionID":collection_id})), ignore_index=True)
-#     if "canvas" in row["id"]:
-#         canvas = canvas.append(row[["id", "internalID"]].append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
+        canvas = canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
 
-# Create empty DataFrames to store the results
-collection_items = pd.DataFrame()
-manifest_items = pd.DataFrame()
+df_joined = merge(collection, creator, on="internalID", how="left")
+df_joined_2 = merge(manifest, creator, on="internalID", how="left")
+df_joined_3 = merge(canvas, creator, on="internalID", how="left")
+
+print(df_joined)
+print(df_joined_2)
+print(df_joined_3)
 
 # Iterate over rows in 'collection' DataFrame
 for index, row in collection.iterrows():
