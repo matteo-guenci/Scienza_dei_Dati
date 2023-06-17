@@ -29,13 +29,13 @@ rel_qp.setDbPathOrUrl(rel_path)
 #print(rel_qp.getEntitiesWithTitle('Raimondi, Giuseppe. Quaderno manoscritto, "Caserma Scalo : 1930-1968"'))
 generic = GenericQueryProcessor()
 generic.addQueryProcessor(rel_qp)
-# generic.addQueryProcessor(grp_qp)
+generic.addQueryProcessor(grp_qp)
 result = generic.getAllAnnotations()
 for i in result:
-    print(i.print_ann())
+    print(i.getMotivation())
 
 result2=generic.getAllManifest()
 for i in result2:
-    print(i.getTitle())
+    print(i.getCreators())
 # print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/2/28429/annotation/p0001-image"))
 

@@ -364,7 +364,7 @@ class TriplestoreQueryProcessor(QueryProcessor):
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
         PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-        select ?manifest ?lable where {?manifest a iiif_prezi:Manifest;
+        select ?manifest ?label where {?manifest a iiif_prezi:Manifest;
                                                 rdfs:label ?label}
         """
         df_sparq=get(self.dbPathOrUrl,query,True)
@@ -536,7 +536,7 @@ class GenericQueryProcessor (object):
             if type(i) == TriplestoreQueryProcessor:
                 pass
     def getImagesAnnotatingCanvas(self):
-        for i in self.queryProcessor:
+        for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
                 result = list()
     
@@ -546,16 +546,20 @@ class GenericQueryProcessor (object):
         temp_2 = DataFrame()
         id = ""
         label = ""
-        for i in self.queryProcessor:
+        for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
+                #print ("oktrpl")
                 temp = i.getAllManifests()
-        for i in self.queryProcessor:
+        for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
-                for j in temp.iterrows():
-                    id = j[["manifest"]]
-                    label = j[["label"]]
+                #print ("okrel")
+                for index,row in temp.iterrows():
+                    id = row[0]
+                    label = row[1]
                     temp_2 = i.getEntityById(id)
-                    result.append(Manifest(str(id), str(temp_2[["creator"]]).split(";"), str(label), str(temp_2[["title"]])))
+                    result.append(Manifest(str(id), str(temp_2["creator"].values[0]).split(";"), str(label), str(temp_2[["title"]])))
+        
+        return result
  
                 
     # def getAllCanvas(self):
@@ -568,8 +572,12 @@ class GenericQueryProcessor (object):
                 
 
 class IdentifiableEntity(object):
-     def __init__(self, id):
-         self.id = id
+    def __init__(self, id):
+        self.id = id
+
+    def getId(self):
+        return self.id
+
 
 class Annotation(IdentifiableEntity):
     def __init__(self, id, motivation, target, body):
@@ -577,50 +585,50 @@ class Annotation(IdentifiableEntity):
         self.motivation = motivation
         self.target = target
         self.body = body
-    def print_ann(self):
-        print(self.id, self.motivation, self.target, self.body)
+    def getMotivation(self):
+        return self.motivation
     
 class Image(IdentifiableEntity):
     def __init__(self, id):
         super().__init__(id)
 
 class EntityWithMetadata(IdentifiableEntity):
-    def __init__(self, id, label, title, creator:list):
+    def __init__(self, id, label, title, creators:list):
         super().__init__(id)
-        self.creator = creator
+        self.creators = creators
         self.label = label
         self.title = title
     def getLabel(self):
-        print(self.label)
+        return self.label
     def getTitle(self):
-        print(self.title)
+        return self.title
     def getCreators(self):
-        print(self.creator)
+        return self.creators
 
 class Collection(EntityWithMetadata):
-    def __init__(self, id, creator, label, title):
-        super().__init__(id)
-        super().__init__(creator)
-        super().__init__(label)
-        super().__init__(title)
+    def __init__(self, id, creators, label, title):
+        super().__init__(id, label, title, creators)
+        # super().__init__(creator)
+        # super().__init__(label)
+        # super().__init__(title)
         self.label = label
         self.items = list()       
 
 class Manifest(EntityWithMetadata):
-    def __init__(self, id, creator, label, title):
-        super().__init__(id)
-        super().__init__(creator)
-        super().__init__(label)
-        super().__init__(title)
+    def __init__(self, id, creators:list, label, title):
+        super().__init__(id, label, title, creators)
+        # super().__init__(creator)
+        # super().__init__(label)
+        # super().__init__(title)
         self.label = label 
         self.items = list()
     def getItems():
         pass
 
 class Canvas(EntityWithMetadata):
-    def __init__(self, id, creator, label, title):
-        super().__init__(id)
-        super().__init__(creator)
-        super().__init__(label)
-        super().__init__(title)
+    def __init__(self, id, creators, label, title):
+        super().__init__(id, label, title, creators)
+        # super().__init__(creator)
+        # super().__init__(label)
+        # super().__init__(title)
         self.label = label
