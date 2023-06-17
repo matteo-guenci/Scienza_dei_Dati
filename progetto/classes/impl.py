@@ -23,52 +23,78 @@ class QueryProcessor (Processor):
     
     def getEntityById(self, id:str):
 
-        def find_type (id):
-            with connect(self.dbPathOrUrl) as con:
-                query = """SELECT *
-                           FROM Collection
-                           WHERE Collection.id=?"""
-            result = read_sql(query, con, params=(id,))
-            if len(result)>0: return "Collection"
+        if ".db" in self.dbPathOrUrl:
+            def find_type (id):
+                with connect(self.dbPathOrUrl) as con:
+                    query = """SELECT *
+                            FROM Collection
+                            WHERE Collection.id=?"""
+                result = read_sql(query, con, params=(id,))
+                if len(result)>0: 
+                    query = """select *
+                            from Collection
+                            LEFT JOIN Creator ON Creator.InternalID=Collection.internalID
+                            where Collection.id=?"""
+                    result = read_sql(query, con, params=(id,))
+                    return result.loc[:, ~result.columns.duplicated()]
+                
+                with connect(self.dbPathOrUrl) as con:
+                    query = """SELECT *
+                            FROM Canvas
+                            WHERE Canvas.id=?"""
+                result = read_sql(query, con, params=(id,))
+                if len(result)>0: 
+                    query = """select *
+                            from Canvas
+                            LEFT JOIN Creator ON Creator.InternalID=Canvas.internalID
+                            where Canvas.id=?"""
+                    result = read_sql(query, con, params=(id,))
+                    return result.loc[:, ~result.columns.duplicated()]
 
-            with connect(self.dbPathOrUrl) as con:
-                query = """SELECT *
-                           FROM Canvas
-                           WHERE Canvas.id=?"""
-            result = read_sql(query, con, params=(id,))
-            if len(result)>0: return "Canvas"
+                with connect(self.dbPathOrUrl) as con:
+                    query = """SELECT *
+                            FROM Manifest
+                            WHERE Manifest.id=?"""
+                result = read_sql(query, con, params=(id,))
+                if len(result)>0: 
+                    query = """select distinct *
+                            from Manifest
+                            LEFT JOIN Creator ON Creator.InternalID=Manifest.internalID
+                            where Manifest.id=?"""
+                    result = read_sql(query, con, params=(id,))
+                    return result.loc[:, ~result.columns.duplicated()]
 
-            with connect(self.dbPathOrUrl) as con:
-                query = """SELECT *
-                           FROM Manifest
-                           WHERE Manifest.id=?"""
-            result = read_sql(query, con, params=(id,))
-            if len(result)>0: return "Manifest"
+                with connect(self.dbPathOrUrl) as con:
+                    query = """SELECT *
+                            FROM Image
+                            WHERE Image.image_url=?"""
+                result = read_sql(query, con, params=(id,))
+                if len(result)>0: return result.loc[:, ~result.columns.duplicated()]
 
-            with connect(self.dbPathOrUrl) as con:
-                query = """SELECT *
-                           FROM Image
-                           WHERE Image.image_url=?"""
-            result = read_sql(query, con, params=(id,))
-            if len(result)>0: return "Image"
+                with connect(self.dbPathOrUrl) as con:
+                    query = """SELECT *
+                            FROM Annotation
+                            WHERE Annotation.id=?"""
+                result = read_sql(query, con, params=(id,))
+                if len(result)>0: return result.loc[:, ~result.columns.duplicated()]
 
-            with connect(self.dbPathOrUrl) as con:
-                query = """SELECT *
-                           FROM Annotation
-                           WHERE Annotation.id=?"""
-            result = read_sql(query, con, params=(id,))
-            if len(result)>0: return "Annotation"
+                return None
+            
+            return find_type(id)
+                    
+        else:
+            query="""
+                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                    PREFIX ast: <http://www.w3.org/ns/activitystreams#>
+                    PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-            return None
-        
-        # type=find_type(id)
-        # if type==""
-        
+                    select ?label ?items where {<"""+str(id)+"""> rdfs:label ?label.
+                    optional {<"""+str(id)+"""> ast:items ?items.}
+                    }
+                    """
+            df_sparq=get(self.dbPathOrUrl,query,True)
+            return df_sparq
 
-
-        pass   #RIEMPIRE!!!
-                ##########
-                ###########
 
 class AnnotationProcessor (Processor):
     def __init__(self):
@@ -94,9 +120,9 @@ class AnnotationProcessor (Processor):
         self.Image = self.Image.rename(columns={"body":"image_url"})
             # annotations_j = annotations_j.rename(columns={"internalID_x":"internalID", "id_x":"id", "internalID_y":"target"})
 
-        df_joined = merge(self.Annotation, self.Image, left_on="body", right_on="image_url")
-        self.Annotation = df_joined[["id", "imageID", "target", "motivation"]]
-        self.Annotation = self.Annotation.rename(columns={"imageID":"body"})
+        # df_joined = merge(self.Annotation, self.Image, left_on="body", right_on="image_url")
+        # self.Annotation = df_joined[["id", "imageID", "target", "motivation"]]
+        # self.Annotation = self.Annotation.rename(columns={"imageID":"body"})
 
         with connect(self.dbPathOrUrl) as con:
             self.Image.to_sql("Image", con, if_exists="replace", index=False)
@@ -147,7 +173,7 @@ class MetadataProcessor (Processor):
         self.Metadata.insert(0, "internalID", Series(self.Metadata["id"].apply(extract_id), dtype="string"))
 
 
-        self.Creator = self.Metadata[["creator", "title", "internalID"]] 
+        self.Creator = self.Metadata[["creator", "internalID"]] 
         
 
         collection_id = ""
@@ -156,12 +182,12 @@ class MetadataProcessor (Processor):
         for word, row in self.Metadata.iterrows():
             if "collection" in row["id"]:
                 collection_id = row["internalID"]
-                self.Collection = self.Collection._append(row[["id", "internalID", "title"]])
+                self.Collection = self.Collection.append(row[["id", "internalID", "title"]])
             if "manifest" in row["id"]:
                 manifest_id = row["internalID"]
-                self.Manifest = self.Manifest._append(row[["id", "internalID", "title"]])
+                self.Manifest = self.Manifest.append(row[["id", "internalID", "title"]])
             if "canvas" in row["id"]:
-                self.Canvas = self.Canvas._append(row[["id", "internalID", "title"]])
+                self.Canvas = self.Canvas.append(row[["id", "internalID", "title"]])
         
         for index, row in self.Collection.iterrows():
             # Iterate over rows in 'metadata' DataFrame
@@ -172,7 +198,7 @@ class MetadataProcessor (Processor):
                         # Create a temporary DataFrame with the desired values
                         temp_df = DataFrame({"collection_id": [row["internalID"]], "manifest_id": [row_2["internalID"]]})
                         # Append the temporary DataFrame to 'collection_items'
-                        self.Collection_items = self.Collection_items._append(temp_df)
+                        self.Collection_items = self.Collection_items.append(temp_df)
         self.Collection_items = self.Collection_items.reset_index(drop=True)
 
         # Iterate over rows in 'manifest' DataFrame
@@ -184,7 +210,7 @@ class MetadataProcessor (Processor):
                         # Create a temporary DataFrame with the desired values
                         temp_df = DataFrame({"manifest_id": [row["internalID"]], "canvas_id": [row_2["internalID"]]})
                         # Append the temporary DataFrame to 'manifest_items'
-                        self.Manifest_items = self.Manifest_items._append(temp_df)
+                        self.Manifest_items = self.Manifest_items.append(temp_df)
         self.Manifest_items = self.Manifest_items.reset_index(drop=True)
 
         with connect(self.dbPathOrUrl) as con:
