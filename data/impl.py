@@ -106,7 +106,7 @@ class AnnotationProcessor (Processor):
         def extract_id(s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
-                return s
+                return None
             else:
                 return pattern
             pass
@@ -240,12 +240,12 @@ class MetadataProcessor (Processor):
             self.Manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
             con.commit()
 
-        # print(self.Collection)
-        # print(self.Manifest)
-        # print(self.Canvas)
-        # print(self.Creator)
-        # print(self.Collection_items)
-        # print(self.Manifest_items)
+        print(self.Collection)
+        print(self.Manifest)
+        print(self.Canvas)
+        print(self.Creator)
+        print(self.Collection_items)
+        print(self.Manifest_items)
 
     
 class CollectionProcessor(Processor):
@@ -498,9 +498,9 @@ class RelationalQueryProcessor (QueryProcessor):
         return result
     
     def getEntitiesWithTitle(self, title):
-        # print(title)
-        # title = self.replacer(title)
-        # print(title)
+        print(title)
+        title = self.replacer(title)
+        print(title)
         with connect(self.dbPathOrUrl) as con:
             query = """
                     SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
@@ -523,10 +523,3 @@ class GenericQueryProcessor (object):
 
     def cleanQueryProcessor(self):
         self.queryProcessor=list()
-
-
-
-    
-
-
-    
