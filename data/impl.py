@@ -523,3 +523,52 @@ class GenericQueryProcessor (object):
 
     def cleanQueryProcessor(self):
         self.queryProcessor=list()
+
+
+
+class IdentifiableEntity(object):
+     def __init__(self, id):
+         self.id = id
+
+class Annotation(IdentifiableEntity):
+    def __init__(self, motivation, target, body):
+        self.motivation = motivation
+        self.target = target
+        self.body = body
+    
+class Image(IdentifiableEntity):
+    pass
+
+
+class EntityWithMetadataCreators(IdentifiableEntity):
+    def __init__(self, creator):
+        self.creator = creator
+        
+    
+
+        # self.creators = set()
+        # for creator in creators:
+        #     self.creators.add(creator)
+
+class Collection(EntityWithMetadataCreators):
+    def __init__(self, label, title):
+        # self.items = set()
+        self.label = label
+        self.title = title
+        self.items = list()       
+        # for item in items:
+        #     self.items.add(item)
+
+class Manifest(EntityWithMetadataCreators):
+    def __init__(self, label, title):
+        self.label = label
+        self.title = title 
+        self.items = list()
+        # self.items = set()
+        # for item in items:
+        #   self.items.add(item)
+
+class Canvas(EntityWithMetadataCreators):
+    def __init__(self, label, title):
+        self.label = label
+        self.title = title
