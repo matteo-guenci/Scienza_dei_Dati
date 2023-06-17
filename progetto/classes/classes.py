@@ -22,23 +22,25 @@ class EntityWithMetadataCreators(IdentifiableEntity):
         # for creator in creators:
         #     self.creators.add(creator)
 
-class Collection(IdentifiableEntity):
+class Collection(EntityWithMetadataCreators):
     def __init__(self, label, title):
         # self.items = set()
         self.label = label
-        self.title = title       
+        self.title = title
+        self.items = list()       
         # for item in items:
         #     self.items.add(item)
 
-class Manifest(IdentifiableEntity):
+class Manifest(EntityWithMetadataCreators):
     def __init__(self, label, title):
         self.label = label
         self.title = title 
+        self.items = list()
         # self.items = set()
         # for item in items:
         #   self.items.add(item)
 
-class Canvas(IdentifiableEntity):
+class Canvas(EntityWithMetadataCreators):
     def __init__(self, label, title):
         self.label = label
         self.title = title
