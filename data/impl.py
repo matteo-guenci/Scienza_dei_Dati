@@ -435,7 +435,7 @@ class RelationalQueryProcessor (QueryProcessor):
     def extract_id(self, s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
-                return None
+                return s
             else:
                 return pattern
             pass
