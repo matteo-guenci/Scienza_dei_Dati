@@ -33,5 +33,9 @@ generic.addQueryProcessor(rel_qp)
 result = generic.getAllAnnotations()
 for i in result:
     print(i.print_ann())
+
+result2=generic.getAllManifest()
+for i in result2:
+    print(i.getTitle())
 # print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/2/28429/annotation/p0001-image"))
 
