@@ -55,25 +55,26 @@ class Relational_query_processor(object):
         
     
     
-    # def getEntitiesWithCreator(creator):
-    #     target_creator = creator
-    #     with connect("annotations_metadata_2.db") as con:
-    #         query = """SELECT creator, title, Collection.internalID
-    #         FROM Creator
-    #         LEFT JOIN Collection ON Creator.internalID = Collection.internalID
-    #         WHERE Creator.creator = ?
-    #         UNION
-    #         SELECT creator, title, Manifest.internalID
-    #         FROM Creator
-    #         LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
-    #         WHERE Creator.creator = ?
-    #         UNION
-    #         SELECT creator, NULL, Canvas.internalID
-    #         FROM Creator
-    #         LEFT JOIN Canvas ON Creator.internalID = Canvas.manifestID
-    #         WHERE Creator.creator = ? """
-    #         result = read_sql(query, con, params=(creator,))
-    #         return result
+    def getEntitiesWithCreator(creator):
+        with connect("annotations_metadata_2.db") as con:
+            query = """SELECT Creator.creator 
+            FROM Creator
+            WHERE creator=?
+            UNION 
+            SELECT Collection.title AS Collection_Title, Collection.id AS Collection_Id
+            FROM Collection
+            WHERE creator=?
+            UNION
+            SELECT Manifest.title AS Manifest_Title, Manifest.id AS Manifest_Id
+            FROM Manifest
+            WHERE creator=?
+            UNION
+            SELECT Canvas.title AS Canvas_Title, Canvas.id AS Canvas_Id
+            FROM Canvas
+            WHERE creator=?
+            """
+        result = read_sql(query, con, params=(creator,))
+        return result
     
     def getEntitiesWithTitle(title):
         target_title = title
@@ -84,8 +85,8 @@ class Relational_query_processor(object):
         result = read_sql(query, con, params=(title,))
         return result
 
-print(Relational_query_processor.getEntitiesWithCreator("Raimondi, Giuseppe"))
-# print(Relational_query_processor.getEntitiesWithTitle("Dante Alighieri: Opere"))
+print(Relational_query_processor.getEntitiesWithCreator("Alighieri, Dante"))
+#print(Relational_query_processor.getEntitiesWithTitle("Raimondi, Giuseppe. Quaderno manoscritto, ""Caserma Scalo : 1930-1968"""))
 # print(Relational_query_processor.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg"))
 # print(Relational_query_processor.getAnnotationsWithTarget("https://dl.ficlit.unibo.it/iiif/2/28429/canvas/p1"))
 # print(Relational_query_processor.getAnnotationsWithBodyAndTarget("https://dl.ficlit.unibo.it/iiif/2/45498/full/699,800/0/default.jpg", "https://dl.ficlit.unibo.it/iiif/2/28429/canvas/p1")) 

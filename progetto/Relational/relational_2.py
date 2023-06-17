@@ -60,6 +60,69 @@ print(df_joined)
 print(df_joined_2)
 print(df_joined_3)
 
+# Iterate over rows in 'collection' DataFrame
+for index, row in collection.iterrows():
+    # Iterate over rows in 'metadata' DataFrame
+    for index_2, row_2 in metadata.iterrows():
+        if "manifest" in row_2["id"]:
+            # print (row["id"], row_2["id"], is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"))
+            if is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"):
+                # Create a temporary DataFrame with the desired values
+                temp_df = DataFrame({"collection_id": [row["internalID"]], "manifest_id": [row_2["internalID"]]})
+                # Append the temporary DataFrame to 'collection_items'
+                collection_items = collection_items._append(temp_df)
+collection_items = collection_items.reset_index(drop=True)
+
+# Iterate over rows in 'manifest' DataFrame
+for index, row in manifest.iterrows():
+    # Iterate over rows in 'metadata' DataFrame
+    for index_2, row_2 in metadata.iterrows():
+        if "canvas" in row_2["id"]:
+            if is_part_of(row["internalID"], row_2["internalID"], "manifest", "canvas"):
+                # Create a temporary DataFrame with the desired values
+                temp_df = DataFrame({"manifest_id": [row["internalID"]], "canvas_id": [row_2["internalID"]]})
+                # Append the temporary DataFrame to 'manifest_items'
+                manifest_items = manifest_items._append(temp_df)
+manifest_items = manifest_items.reset_index(drop=True)
+
+# for word, row in collection.iterrows():
+#     for word_2, row_2 in metadata.iterrows():
+#         if "manifest" in row_2["id"]:
+#             print(is_part_of(row["id"], row_2["id"], "collection", "manifest"))
+#             if is_part_of(row["id"], row_2["id"], "collection", "manifest"):
+#                 collection_items = collection_items._append(row["id"])
+#                 collection_items = collection_items._append(row_2["id"])
+#                 # collection_items= collection_items._append(row[["id"], row_2[["id"]]])
+# for word, row in manifest.iterrows():
+#     for word_2, row_2 in metadata.iterrows():
+#         if "canvas" in row_2["id"]:
+#             if is_part_of(row["id"], row_2["id"], "manifest", "canvas"):
+#                 manifest_items = manifest_items._append(row["id"])
+#                 manifest_items = manifest_items._append(row_2["id"])
+#                 # manifest_items = manifest_items._append(row[["id"], row_2[["id"]]])
+
+
+            
+    
+    
+    # if "collection" in row["id"]:
+    #     for word_2, row_2 in metadata.iterrows():
+    #         if "manifest" in row_2["id"]:
+    #             if is_part_of(row["id"], row_2["id"], "collection", "manifest"):
+    #                 collection_items._append(row["id"])
+            
+    # if "manifest" in row["id"]:
+    #     for word_2, row_2 in metadata.iterrows():
+    #         if "canvas" in row_2["id"]:
+    #             if is_part_of(row["id"], row_2["id"], "manifest", "canvas"):
+    #                 manifest_items._append(row["id"])
+# metadata.insert(0, "internalID", Series(metadata["id"].apply(extract_id), dtype="string"))
+# print(collection)
+# print(manifest)
+# print(canvas)
+# print(creator)
+print(collection_items)
+print(manifest_items)
 with connect("annotations_metadata_2.db") as con:
     creator.to_sql("Creator", con, if_exists="replace", index=False)
     collection.to_sql("Collection", con, if_exists="replace", index=False)
@@ -67,6 +130,9 @@ with connect("annotations_metadata_2.db") as con:
     canvas.to_sql("Canvas", con, if_exists="replace", index=False)
     image.to_sql("Image", con, if_exists="replace", index=False)
     annotations.to_sql("Annotation", con, if_exists="replace", index=False)
+    collection_items.to_sql("Collection_Items", con, if_exists="replace", index=False)
+    manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
+
     # df_joined.to_sql("DFJoined_1", con, if_exists="replace", index=False)
     # df_joined_2.to_sql("DFJoined_2", con, if_exists="replace", index=False)
     # df_joined_3.to_sql("DFJoined_3", con, if_exists="replace", index=False)

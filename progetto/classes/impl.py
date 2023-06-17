@@ -66,6 +66,8 @@ class MetadataProcessor (Processor):
         self.Canvas=DataFrame()
         self.Metadata=DataFrame()
         self.Creator=DataFrame()
+        self.Collection_items=DataFrame()
+        self.Manifest_items=DataFrame()
 
     def uploadData (self, path:str):
 
