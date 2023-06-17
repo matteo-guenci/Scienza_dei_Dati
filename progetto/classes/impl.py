@@ -70,7 +70,11 @@ class MetadataProcessor (Processor):
         self.Manifest_items=DataFrame()
 
     def uploadData (self, path:str):
-
+        
+        def replacer(j):
+            return j.replace('""', '"')
+        
+        
         def extract_id(s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
@@ -78,6 +82,18 @@ class MetadataProcessor (Processor):
             else:
                 return pattern
             pass
+
+        def is_part_of(x, y, type_1, type_2):
+            x = x.strip("/" + type_1)
+            y = y.strip("/" + type_2)
+            x = x.split("/")
+            y = y.split("/")
+            if type_2 == "manifest":
+                if y[1] in x[0]:
+                    return True
+            if type_2 == "canvas":
+                if y[1] in x[1] and y[0] in x[0]:
+                    return True
 
         
         self.Metadata = read_csv(path, keep_default_na=False, dtype={"id":"string",
@@ -96,23 +112,52 @@ class MetadataProcessor (Processor):
         for word, row in self.Metadata.iterrows():
             if "collection" in row["id"]:
                 collection_id = row["internalID"]
-                self.Collection = self.Collection._append(row[["id", "internalID"]])
+                self.Collection = self.Collection._append(row[["id", "internalID", "title"]])
             if "manifest" in row["id"]:
                 manifest_id = row["internalID"]
-                self.Manifest = self.Manifest._append(row[["id", "internalID"]]._append(Series({"collectionID":collection_id})), ignore_index=True)
+                self.Manifest = self.Manifest._append(row[["id", "internalID", "title"]])
             if "canvas" in row["id"]:
-                self.Canvas = self.Canvas._append(row[["id", "internalID"]]._append(Series({"manifestID":manifest_id, "collectionID":collection_id})), ignore_index=True)
+                self.Canvas = self.Canvas._append(row[["id", "internalID", "title"]])
+        
+        for index, row in self.Collection.iterrows():
+            # Iterate over rows in 'metadata' DataFrame
+            for index_2, row_2 in self.Metadata.iterrows():
+                if "manifest" in row_2["id"]:
+                    # print (row["id"], row_2["id"], is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"))
+                    if is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"):
+                        # Create a temporary DataFrame with the desired values
+                        temp_df = DataFrame({"collection_id": [row["internalID"]], "manifest_id": [row_2["internalID"]]})
+                        # Append the temporary DataFrame to 'collection_items'
+                        self.Collection_items = self.Collection_items._append(temp_df)
+        self.Collection_items = self.Collection_items.reset_index(drop=True)
+
+        # Iterate over rows in 'manifest' DataFrame
+        for index, row in self.Manifest.iterrows():
+            # Iterate over rows in 'metadata' DataFrame
+            for index_2, row_2 in self.Metadata.iterrows():
+                if "canvas" in row_2["id"]:
+                    if is_part_of(row["internalID"], row_2["internalID"], "manifest", "canvas"):
+                        # Create a temporary DataFrame with the desired values
+                        temp_df = DataFrame({"manifest_id": [row["internalID"]], "canvas_id": [row_2["internalID"]]})
+                        # Append the temporary DataFrame to 'manifest_items'
+                        self.Manifest_items = self.Manifest_items._append(temp_df)
+        self.Manifest_items = self.Manifest_items.reset_index(drop=True)
+
         with connect(self.dbPathOrUrl) as con:
             self.Creator.to_sql("Creator", con, if_exists="replace", index=False)
             self.Collection.to_sql("Collection", con, if_exists="replace", index=False)
             self.Manifest.to_sql("Manifest", con, if_exists="replace", index=False)
             self.Canvas.to_sql("Canvas", con, if_exists="replace", index=False)
+            self.Collection_items.to_sql("Collection_Items", con, if_exists="replace", index=False)
+            self.Manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
             con.commit()
 
         print(self.Collection)
         print(self.Manifest)
         print(self.Canvas)
         print(self.Creator)
+        print(self.Collection_items)
+        print(self.Manifest_items)
 
     
 class CollectionProcessor(Processor):
@@ -288,4 +333,112 @@ class TriplestoreQueryProcessor(QueryProcessor):
         df_sparq=get(self.dbPathOrUrl,query,True)
         self.Manifest_Collections=df_sparq
         return self.Manifest_Collections
+    
+class RelationalQueryProcessor (QueryProcessor):
+
+    def __init__(self):
+        self.Annotation = DataFrame()
+        self.Images = DataFrame()
+        self.entities = DataFrame()
+        # self.query_processor = query_processor
+    def replacer(self, j):
+        return j.replace('""', '"')
+    
+    def extract_id(self, s):               #aggiunto
+            pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
+            if pattern not in s:
+                return None
+            else:
+                return pattern
+            pass
+    
+    def getAllAnnotations(self):
+        with connect(self.dbPathOrUrl) as con:
+            query = """SELECT *
+            FROM Annotation"""
+        result = read_sql(query, con)
+        return result
+    
+        
+    def getAllImages(self):
+        with connect(self.dbPathOrUrl) as con:
+            query = """SELECT image_url
+            FROM Image"""
+        results = read_sql(query, con)
+        return results
+
+    def getAnnotationsWithBody(self,body):
+        body = self.extract_id(body)
+        with connect(self.dbPathOrUrl) as con:
+            query = """SELECT id, body, target, motivation
+            FROM Annotation
+            WHERE body = ?"""
+            results = read_sql(query, con, params=(body,))
+        return results
+    
+   
+    def getAnnotationsWithBodyAndTarget(self, body, target):
+        body = self.extract_id(body)
+        with connect(self.dbPathOrUrl) as con:
+            query = """SELECT id, body, target, motivation
+            FROM Annotation
+            WHERE body = ? AND target =?"""
+            results = read_sql(query, con, params=(body, target))
+        return results
+
+    def getAnnotationsWithTarget(self, target):
+        with connect(self.dbPathOrUrl) as con:
+            query = """SELECT id, body, target, motivation
+            FROM Annotation
+            WHERE target =?"""
+        result = read_sql(query, con, params=(target,))
+        return result
+
+        
+    
+    
+    def getEntitiesWithCreator(self,creator):
+        with connect(self.dbPathOrUrl) as con:
+            query = """ SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
+                    FROM Creator
+                    LEFT JOIN Collection ON Creator.internalID = Collection.internalID
+                    LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
+                    LEFT JOIN Canvas ON Creator.internalID = Canvas.internalID
+                    WHERE creator=?
+                    """
+        result = read_sql(query, con, params=(creator,))
+        return result
+    
+    def getEntitiesWithTitle(self, title):
+        print(title)
+        title = self.replacer(title)
+        print(title)
+        with connect(self.dbPathOrUrl) as con:
+            query = """
+                    SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
+                    FROM Creator
+                    LEFT JOIN Collection ON Creator.internalID = Collection.internalID
+                    LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
+                    LEFT JOIN Canvas ON Creator.internalID = Canvas.internalID
+                    WHERE ? IN (Collection.title, Manifest.title, Canvas.title)
+                    """
+        result = read_sql(query, con, params=(title,))
+        return result
+
+
+class GenericQueryProcessor (object):
+    def __init__ (self):
+        self.queryProcessors=list()
+    
+    def addQueryProcessor(self, processor):
+        self.queryProcessors.append(processor)
+
+    def cleanQueryProcessor(self):
+        self.queryProcessor=list()
+
+
+
+    
+
+
     
