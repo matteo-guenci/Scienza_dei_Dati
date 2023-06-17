@@ -182,12 +182,24 @@ class MetadataProcessor (Processor):
         for word, row in self.Metadata.iterrows():
             if "collection" in row["id"]:
                 collection_id = row["internalID"]
-                self.Collection = self.Collection.append(row[["id", "internalID", "title"]])
+                try:
+                    self.Collection = self.Collection._append(row[["id", "internalID", "title"]])
+                except (FutureWarning, AttributeError):
+                    self.Collection = self.Collection.append(row[["id", "internalID", "title"]])
+
             if "manifest" in row["id"]:
                 manifest_id = row["internalID"]
-                self.Manifest = self.Manifest.append(row[["id", "internalID", "title"]])
+                try:
+                    self.Manifest = self.Manifest._append(row[["id", "internalID", "title"]])
+                except (FutureWarning, AttributeError):
+                    self.Manifest = self.Manifest.append(row[["id", "internalID", "title"]])
+
             if "canvas" in row["id"]:
-                self.Canvas = self.Canvas.append(row[["id", "internalID", "title"]])
+                try:
+                    self.Canvas = self.Canvas._append(row[["id", "internalID", "title"]])
+                except (FutureWarning, AttributeError):
+                    self.Canvas = self.Canvas.append(row[["id", "internalID", "title"]])
+
         
         for index, row in self.Collection.iterrows():
             # Iterate over rows in 'metadata' DataFrame
@@ -198,7 +210,10 @@ class MetadataProcessor (Processor):
                         # Create a temporary DataFrame with the desired values
                         temp_df = DataFrame({"collection_id": [row["internalID"]], "manifest_id": [row_2["internalID"]]})
                         # Append the temporary DataFrame to 'collection_items'
-                        self.Collection_items = self.Collection_items.append(temp_df)
+                        try:
+                            self.Collection_items = self.Collection_items._append(temp_df)
+                        except (FutureWarning, AttributeError):
+                            self.Collection_items = self.Collection_items.append(temp_df)                            
         self.Collection_items = self.Collection_items.reset_index(drop=True)
 
         # Iterate over rows in 'manifest' DataFrame
@@ -210,7 +225,10 @@ class MetadataProcessor (Processor):
                         # Create a temporary DataFrame with the desired values
                         temp_df = DataFrame({"manifest_id": [row["internalID"]], "canvas_id": [row_2["internalID"]]})
                         # Append the temporary DataFrame to 'manifest_items'
-                        self.Manifest_items = self.Manifest_items.append(temp_df)
+                        try:
+                            self.Manifest_items = self.Manifest_items._append(temp_df)
+                        except (FutureWarning, AttributeError):
+                            self.Manifest_items = self.Manifest_items.append(temp_df)
         self.Manifest_items = self.Manifest_items.reset_index(drop=True)
 
         with connect(self.dbPathOrUrl) as con:
