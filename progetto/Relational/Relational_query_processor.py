@@ -36,7 +36,7 @@ class Relational_query_processor(object):
     
    
     def getAnnotationsWithBodyAndTarget(body, target):
-        body = relational_2.extract_id(body)
+        # body = relational_2.extract_id(body)
         with connect("annotations_metadata_2.db") as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
@@ -45,7 +45,6 @@ class Relational_query_processor(object):
         return results
 
     def getAnnotationsWithTarget(target):
-        target = target.replace('""', '"')
         with connect("annotations_metadata_2.db") as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
@@ -57,7 +56,6 @@ class Relational_query_processor(object):
     
     
     def getEntitiesWithCreator(creator):
-        creator = creator.replace('""', '"')
         with connect("annotations_metadata_2.db") as con:
             query = """ SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
                     FROM Creator
@@ -70,7 +68,6 @@ class Relational_query_processor(object):
         return result
     
     def getEntitiesWithTitle(title):
-        title = title.replace('""', '"')
         with connect("annotations_metadata_2.db") as con:
             query = """SELECT creator, title, Canvas.collectionID, Canvas.manifestID, Canvas.internalID
             FROM Creator LEFT JOIN Canvas ON Creator.internalID = Canvas.collectionID
