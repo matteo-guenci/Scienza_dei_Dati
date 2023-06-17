@@ -28,5 +28,5 @@ rel_qp.setDbPathOrUrl(rel_path)
 
 #print(rel_qp.getEntitiesWithTitle('Raimondi, Giuseppe. Quaderno manoscritto, "Caserma Scalo : 1930-1968"'))
 
-print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/28429/collection"))
+print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/2/28429/annotation/p0001-image"))
 
