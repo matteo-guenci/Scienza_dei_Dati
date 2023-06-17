@@ -34,11 +34,11 @@ image.insert(0, "imageID", Series(annotations["body"].apply(extract_id), dtype="
 image = image.rename(columns={"body":"image_url"})
     # annotations_j = annotations_j.rename(columns={"internalID_x":"internalID", "id_x":"id", "internalID_y":"target"})
 
-df_joined = merge(annotations, image, left_on="body", right_on="image_url")
-annotations = df_joined[["id", "imageID", "target", "motivation"]]
-annotations = annotations.rename(columns={"imageID":"body"})
+# df_joined = merge(annotations, image, left_on="body", right_on="image_url")
+# annotations = df_joined[["id", "imageID", "target", "motivation"]]
+# annotations = annotations.rename(columns={"imageID":"body"})
 # print(image)
-# print(annotations)
+print(annotations)
 metadata.insert(0, "internalID", Series(metadata["id"].apply(extract_id), dtype="string"))
 
 

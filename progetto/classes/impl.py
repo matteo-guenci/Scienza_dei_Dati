@@ -70,10 +70,7 @@ class MetadataProcessor (Processor):
         self.Manifest_items=DataFrame()
 
     def uploadData (self, path:str):
-        
-        def replacer(j):
-            return j.replace('""', '"')
-        
+                
         
         def extract_id(s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
@@ -341,8 +338,6 @@ class RelationalQueryProcessor (QueryProcessor):
         self.Images = DataFrame()
         self.entities = DataFrame()
         # self.query_processor = query_processor
-    def replacer(self, j):
-        return j.replace('""', '"')
     
     def extract_id(self, s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
@@ -410,9 +405,6 @@ class RelationalQueryProcessor (QueryProcessor):
         return result
     
     def getEntitiesWithTitle(self, title):
-        print(title)
-        title = self.replacer(title)
-        print(title)
         with connect(self.dbPathOrUrl) as con:
             query = """
                     SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
