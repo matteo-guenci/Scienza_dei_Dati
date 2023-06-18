@@ -530,11 +530,13 @@ class GenericQueryProcessor (object):
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
                 annotations = i.getAllAnnotations()
-                for j in annotations.iterrows():
-                    result.append(Annotation(str(annotations[["id"]]), str(annotations[["motivation"]]), str(annotations[["target"]]), str(annotations[["body"]])))
+                for j, row in annotations.iterrows():
+                    
+                    result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), str(row[annotations.columns.get_loc("target")]), str(row[annotations.columns.get_loc("body")])))
                 return result
             if type(i) == TriplestoreQueryProcessor:
                 pass
+            
     def getImagesAnnotatingCanvas(self):
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
@@ -554,10 +556,10 @@ class GenericQueryProcessor (object):
             if type(i) == RelationalQueryProcessor:
                 #print ("okrel")
                 for index,row in temp.iterrows():
-                    id = row[0]
-                    label = row[1]
-                    temp_2 = i.getEntityById(id)
-                    result.append(Manifest(str(id), str(temp_2["creator"].values[0]).split(";"), str(label), str(temp_2[["title"]])))
+                    # id = row[temp.columns.get_loc("manifest")]
+                    # label = row[temp.columns.get_loc("label")]
+                    temp_2 = i.getEntityById(row[temp.columns.get_loc("manifest")])
+                    result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2[["title"]])))
         
         return result
  
