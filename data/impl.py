@@ -240,12 +240,12 @@ class MetadataProcessor (Processor):
             self.Manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
             con.commit()
 
-        print(self.Collection)
-        print(self.Manifest)
-        print(self.Canvas)
-        print(self.Creator)
-        print(self.Collection_items)
-        print(self.Manifest_items)
+        # print(self.Collection)
+        # print(self.Manifest)
+        # print(self.Canvas)
+        # print(self.Creator)
+        # print(self.Collection_items)
+        # print(self.Manifest_items)
 
     
 class CollectionProcessor(Processor):
@@ -364,7 +364,8 @@ class TriplestoreQueryProcessor(QueryProcessor):
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
         PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-        select ?manifests where {?manifests a iiif_prezi:Manifest.}
+        select ?manifest ?label where {?manifest a iiif_prezi:Manifest;
+                                                rdfs:label ?label}
         """
         df_sparq=get(self.dbPathOrUrl,query,True)
         self.Manifests=df_sparq
@@ -524,51 +525,112 @@ class GenericQueryProcessor (object):
     def cleanQueryProcessor(self):
         self.queryProcessor=list()
 
-
+    def getAllAnnotations(self):
+        result = list()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                annotations = i.getAllAnnotations()
+                for j, row in annotations.iterrows():
+                    
+                    result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), str(row[annotations.columns.get_loc("target")]), str(row[annotations.columns.get_loc("body")])))
+                return result
+            if type(i) == TriplestoreQueryProcessor:
+                pass
+            
+    def getImagesAnnotatingCanvas(self):
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                result = list()
+    
+    def getAllManifest(self):
+        result = list()
+        temp = DataFrame()
+        temp_2 = DataFrame()
+        id = ""
+        label = ""
+        for i in self.queryProcessors:
+            if type(i) == TriplestoreQueryProcessor:
+                #print ("oktrpl")
+                temp = i.getAllManifests()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                #print ("okrel")
+                for index,row in temp.iterrows():
+                    # id = row[temp.columns.get_loc("manifest")]
+                    # label = row[temp.columns.get_loc("label")]
+                    temp_2 = i.getEntityById(row[temp.columns.get_loc("manifest")])
+                    result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2[["title"]])))
+        
+        return result
+ 
+                
+    # def getAllCanvas(self):
+    #     for i in self.queryProcessor:
+    #         if type(i) == RelationalQueryProcessor:
+    #             result = list()
+    #             for j in .iterrows():
+    #                 result.append(Canvas(str(canvas([["id"]], str(canvas[["title"]])))))
+    #         if type(i) == TriplestoreQueryProcessor:
+                
 
 class IdentifiableEntity(object):
-     def __init__(self, id):
-         self.id = id
+    def __init__(self, id):
+        self.id = id
+
+    def getId(self):
+        return self.id
+
 
 class Annotation(IdentifiableEntity):
-    def __init__(self, motivation, target, body):
+    def __init__(self, id, motivation, target, body):
+        super().__init__(id)
         self.motivation = motivation
         self.target = target
         self.body = body
+    def getMotivation(self):
+        return self.motivation
     
 class Image(IdentifiableEntity):
-    pass
+    def __init__(self, id):
+        super().__init__(id)
 
-
-class EntityWithMetadataCreators(IdentifiableEntity):
-    def __init__(self, creator):
-        self.creator = creator
-        
-    
-
-        # self.creators = set()
-        # for creator in creators:
-        #     self.creators.add(creator)
-
-class Collection(EntityWithMetadataCreators):
-    def __init__(self, label, title):
-        # self.items = set()
+class EntityWithMetadata(IdentifiableEntity):
+    def __init__(self, id, label, title, creators:list):
+        super().__init__(id)
+        self.creators = creators
         self.label = label
         self.title = title
+    def getLabel(self):
+        return self.label
+    def getTitle(self):
+        return self.title
+    def getCreators(self):
+        return self.creators
+
+class Collection(EntityWithMetadata):
+    def __init__(self, id, creators, label, title):
+        super().__init__(id, label, title, creators)
+        # super().__init__(creator)
+        # super().__init__(label)
+        # super().__init__(title)
+        self.label = label
         self.items = list()       
-        # for item in items:
-        #     self.items.add(item)
 
-class Manifest(EntityWithMetadataCreators):
-    def __init__(self, label, title):
-        self.label = label
-        self.title = title 
+class Manifest(EntityWithMetadata):
+    def __init__(self, id, creators:list, label, title):
+        super().__init__(id, label, title, creators)
+        # super().__init__(creator)
+        # super().__init__(label)
+        # super().__init__(title)
+        self.label = label 
         self.items = list()
-        # self.items = set()
-        # for item in items:
-        #   self.items.add(item)
+    def getItems():
+        pass
 
-class Canvas(EntityWithMetadataCreators):
-    def __init__(self, label, title):
+class Canvas(EntityWithMetadata):
+    def __init__(self, id, creators, label, title):
+        super().__init__(id, label, title, creators)
+        # super().__init__(creator)
+        # super().__init__(label)
+        # super().__init__(title)
         self.label = label
-        self.title = title
