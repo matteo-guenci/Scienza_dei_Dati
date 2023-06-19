@@ -37,8 +37,11 @@ generic.addQueryProcessor(grp_qp)
 # result2=generic.getAllCollections()
 # for i in result2:
 #     print(i.getCreators())
-result=generic.getCanvasesInManifest("https://dl.ficlit.unibo.it/iiif/2/28429/manifest")
-for i in result:
-    print (i.getId())
+# result=generic.getCanvasesInManifest("https://dl.ficlit.unibo.it/iiif/2/28429/manifest")
+# for i in result:
+#     print (i.getId())
 # print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/2/28429/annotation/p0001-image"))
+result=generic.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45502/full/699,800/0/default.jpg")
+for i in result:
+    print (i)
 

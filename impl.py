@@ -798,6 +798,26 @@ class GenericQueryProcessor (object):
                     else: return None
         
         return result
+    
+    def getAnnotationsWithBody(self, body):
+        result = list()
+        annotations=DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                try:
+                    annotations = annotations._append(i.getAnnotationsWithBody(body))
+                    print ("oktry")
+                except (FutureWarning, AttributeError):
+                    annotations = annotations.append(i.getAnnotationsWithBody(body))
+                    
+                print ("okexcept")
+                for j, row in annotations.iterrows():
+                    print ("okfor")
+                    result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
+                
+            if type(i) == TriplestoreQueryProcessor:
+                pass
+        return result
 
 class IdentifiableEntity(object):
     def __init__(self, id):
@@ -813,6 +833,7 @@ class Annotation(IdentifiableEntity):
         self.motivation = motivation
         self.target = target
         self.body = body
+
     def getMotivation(self):
         return self.motivation
     
