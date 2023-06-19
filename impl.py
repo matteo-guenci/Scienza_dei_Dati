@@ -93,6 +93,7 @@ class QueryProcessor (Processor):
                     }
                     """
             df_sparq=get(self.dbPathOrUrl,query,True)
+            if len(df_sparq)==0: return None
             return df_sparq
 
 
@@ -408,7 +409,7 @@ class TriplestoreQueryProcessor(QueryProcessor):
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
         PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-        select * where {?s rdfs:label \""""+str(label)+"""\"}       
+        select ?s where {?s rdfs:label \""""+str(label)+"""\"}       
         """
         #se non va rivedi escape characters
         df_sparq=get(self.dbPathOrUrl,query,True)
@@ -461,7 +462,7 @@ class RelationalQueryProcessor (QueryProcessor):
         return results
 
     def getAnnotationsWithBody(self,body):
-        body = self.extract_id(body)
+        #body = self.extract_id(body)
         with connect(self.dbPathOrUrl) as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
@@ -471,12 +472,12 @@ class RelationalQueryProcessor (QueryProcessor):
     
    
     def getAnnotationsWithBodyAndTarget(self, body, target):
-        body = self.extract_id(body)
+        #body = self.extract_id(body)
         with connect(self.dbPathOrUrl) as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
-            WHERE body = ? AND target =?"""
-            results = read_sql(query, con, params=(body, target))
+            WHERE body=? AND target=?"""
+            results = read_sql(query, con, params=(body, target,))
         return results
 
     def getAnnotationsWithTarget(self, target):
@@ -491,21 +492,20 @@ class RelationalQueryProcessor (QueryProcessor):
     
     
     def getEntitiesWithCreator(self,creator):
+        creator="%"+creator+"%"
         with connect(self.dbPathOrUrl) as con:
             query = """ SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
                     FROM Creator
                     LEFT JOIN Collection ON Creator.internalID = Collection.internalID
                     LEFT JOIN Manifest ON Creator.internalID = Manifest.internalID
                     LEFT JOIN Canvas ON Creator.internalID = Canvas.internalID
-                    WHERE creator=?
+                    WHERE creator LIKE ?
                     """
         result = read_sql(query, con, params=(creator,))
         return result
     
     def getEntitiesWithTitle(self, title):
-        print(title)
-        title = self.replacer(title)
-        print(title)
+        
         with connect(self.dbPathOrUrl) as con:
             query = """
                     SELECT Creator.creator, Collection.id AS Collection_Id, Manifest.id AS Manifest_Id, Canvas.id AS Canvas_Id, Collection.title AS Collection_Title, Manifest.title AS Manifest_Title, Canvas.title AS Canvas_Title
@@ -564,36 +564,47 @@ class GenericQueryProcessor (object):
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
                     temp=i.getEntityById(id)
+                    
         
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor: 
-                for index,row in temp.iterrows():
-                    
                     if temp is not None:
-                        temp_2=i.getEntityById(row[temp.columns.get_loc("id")])
-                        if temp_2 is not None:
-                            if "collection" in id:
-                                return Collection(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
-                            elif "manifest" in id:
-                                return Manifest(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
-                            elif "canvas" in id:
-                                return Canvas(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
-                            elif "annotation" in id:
-                                return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
+                        for index,row in temp.iterrows(): 
+                            temp_2=i.getEntityById(row[temp.columns.get_loc("id")])
+                            if temp_2 is not None:
+                                if "collection" in id:
+                                    return Collection(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
+                                elif "manifest" in id:
+                                    return Manifest(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
+                                elif "canvas" in id:
+                                    return Canvas(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
+                                elif "annotation" in id:
+                                    return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
+                                else:
+                                    return Image(str(temp_2["image_url"].values[0]))
                             else:
-                                return Image(str(temp_2["image_url"].values[0]))
+                                if "collection" in id:
+                                    return Collection(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None, self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
+                                elif "manifest" in id:
+                                    return Manifest(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None, self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
+                                elif "canvas" in id:
+                                    return Canvas(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None)
+                                elif "annotation" in id:
+                                    return Annotation(None, None, None, None)
+                                else:
+                                    return Image(None)
+                    else:
+                        temp_2=i.getEntityById(id)
+                        if "collection" in id:
+                            return Collection(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split(";"), None, str(temp_2["title"].values[0]), self.getManifestsInCollection(id))
+                        elif "manifest" in id:
+                            return Manifest(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split(";"), None, str(temp_2["title"].values[0]), self.getCanvasesInManifest(id))
+                        elif "canvas" in id:
+                            return Canvas(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split(";"), None, str(temp_2["title"].values[0]))
+                        elif "annotation" in id:
+                            return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
                         else:
-                            if "collection" in id:
-                                return Collection(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None, self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
-                            elif "manifest" in id:
-                                return Manifest(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None, self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
-                            elif "canvas" in id:
-                                return Canvas(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None)
-                            elif "annotation" in id:
-                                return Annotation(None, None, None, None)
-                            else:
-                                return Image(None, None, None, None)
-
+                            return Image(str(temp_2["image_url"].values[0]))
         return None                    
             
 
@@ -806,18 +817,196 @@ class GenericQueryProcessor (object):
             if type(i) == RelationalQueryProcessor:
                 try:
                     annotations = annotations._append(i.getAnnotationsWithBody(body))
-                    print ("oktry")
                 except (FutureWarning, AttributeError):
                     annotations = annotations.append(i.getAnnotationsWithBody(body))
                     
-                print ("okexcept")
+                if annotations.empty: print ("vuoto")
                 for j, row in annotations.iterrows():
-                    print ("okfor")
                     result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
                 
             if type(i) == TriplestoreQueryProcessor:
                 pass
         return result
+    
+    def getAnnotationsWithTarget(self, target):
+        result = list()
+        annotations=DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                try:
+                    annotations = annotations._append(i.getAnnotationsWithTarget(target))
+                except (FutureWarning, AttributeError):
+                    annotations = annotations.append(i.getAnnotationsWithTarget(target))
+                    
+                for j, row in annotations.iterrows():
+                    result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
+                
+            if type(i) == TriplestoreQueryProcessor:
+                pass
+        
+        return result
+    
+    def getAnnotationsWithBodyAndTarget(self, body, target):
+        result = list()
+        annotations=DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                try:
+                    annotations = annotations._append(i.getAnnotationsWithBodyAndTarget(body, target))
+                except (FutureWarning, AttributeError):
+                    annotations = annotations.append(i.getAnnotationsWithBodyAndTarget(body, target))
+                    
+                for j, row in annotations.iterrows():
+                    result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
+                
+            if type(i) == TriplestoreQueryProcessor:
+                pass
+        
+        return result
+    
+    def getAnnotationsToCanvas(self, id):
+        result = list()
+        if "canvas" in id:
+            annotations=DataFrame()
+            for i in self.queryProcessors:
+                if type(i) == RelationalQueryProcessor:
+                    try:
+                        annotations = annotations._append(i.getAnnotationsWithTarget(id))
+                    except (FutureWarning, AttributeError):
+                        annotations = annotations.append(i.getAnnotationsWithTarget(id))
+                        
+                    for j, row in annotations.iterrows():
+                        result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
+                    
+                if type(i) == TriplestoreQueryProcessor:
+                    pass
+            return result
+        else: return result
+
+    def getAnnotationsToManifest(self, id):
+        result = list()
+        if "manifest" in id:
+            annotations=DataFrame()
+            for i in self.queryProcessors:
+                if type(i) == RelationalQueryProcessor:
+                    try:
+                        annotations = annotations._append(i.getAnnotationsWithTarget(id))
+                    except (FutureWarning, AttributeError):
+                        annotations = annotations.append(i.getAnnotationsWithTarget(id))
+                        
+                    for j, row in annotations.iterrows():
+                        result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
+                    
+                if type(i) == TriplestoreQueryProcessor:
+                    pass
+            return result
+        else: return result
+    
+    def getAnnotationsToCollection(self, id):
+        result = list()
+        if "collection" in id:
+            annotations=DataFrame()
+            for i in self.queryProcessors:
+                if type(i) == RelationalQueryProcessor:
+                    try:
+                        annotations = annotations._append(i.getAnnotationsWithTarget(id))
+                    except (FutureWarning, AttributeError):
+                        annotations = annotations.append(i.getAnnotationsWithTarget(id))
+                        
+                    for j, row in annotations.iterrows():
+                        result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
+                    
+                if type(i) == TriplestoreQueryProcessor:
+                    pass
+            return result
+        else: return result
+
+    def getImagesAnnotatingCanvas(self, id):
+        result = list()
+        annotations=DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                try:
+                    annotations = annotations._append(i.getAnnotationsWithTarget(id))
+                except (FutureWarning, AttributeError):
+                    annotations = annotations.append(i.getAnnotationsWithTarget(id))
+                    
+                for j, row in annotations.iterrows():
+                    result.append(Image(str(row[annotations.columns.get_loc("body")])))
+                
+            if type(i) == TriplestoreQueryProcessor:
+                pass
+        return result
+    
+    def getEntitiesWithCreator (self, creator):
+        result = list()
+        table = DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                try:
+                    table = table._append(i.getEntitiesWithCreator(creator))
+                except (FutureWarning, AttributeError):
+                    table = table.append(i.getEntitiesWithCreator(creator))
+                    
+                for j, row in table.iterrows():
+                    if row[table.columns.get_loc("Collection_Id")]:
+                        result.append(self.getEntityById(row[table.columns.get_loc("Collection_Id")]))
+                    if row[table.columns.get_loc("Manifest_Id")]:
+                        
+                        result.append(self.getEntityById(row[table.columns.get_loc("Manifest_Id")]))
+                    if row[table.columns.get_loc("Canvas_Id")]:
+                        result.append(self.getEntityById(row[table.columns.get_loc("Canvas_Id")]))
+                
+            if type(i) == TriplestoreQueryProcessor:
+                pass
+        return result
+    
+    def getEntitiesWithTitle (self, title):
+        result = list()
+        table = DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                try:
+                    table = table._append(i.getEntitiesWithTitle(title))
+                except (FutureWarning, AttributeError):
+                    table = table.append(i.getEntitiesWithTitle(title))
+                    
+                for j, row in table.iterrows():
+                    if row[table.columns.get_loc("Collection_Id")]:
+                        result.append(self.getEntityById(row[table.columns.get_loc("Collection_Id")]))
+                    if row[table.columns.get_loc("Manifest_Id")]:
+                        
+                        result.append(self.getEntityById(row[table.columns.get_loc("Manifest_Id")]))
+                    if row[table.columns.get_loc("Canvas_Id")]:
+                        result.append(self.getEntityById(row[table.columns.get_loc("Canvas_Id")]))
+                
+            if type(i) == TriplestoreQueryProcessor:
+                pass
+        return result
+    
+    def getEntitiesWithLabel (self, label):
+        result = list()
+        table = DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                pass
+                
+            if type(i) == TriplestoreQueryProcessor:
+                try:
+                    table = table._append(i.getEntitiesWithLabel(label))
+                except (FutureWarning, AttributeError):
+                    table = table.append(i.getEntitiesWithLabel(label))
+
+                for j, row in table.iterrows():
+                    result.append(self.getEntityById(row[table.columns.get_loc("s")]))
+
+        return result
+    
+
+
+        
+        
+
 
 class IdentifiableEntity(object):
     def __init__(self, id):

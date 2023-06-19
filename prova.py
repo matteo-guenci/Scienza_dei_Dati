@@ -41,7 +41,8 @@ generic.addQueryProcessor(grp_qp)
 # for i in result:
 #     print (i.getId())
 # print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/2/28429/annotation/p0001-image"))
-result=generic.getAnnotationsWithBody("https://dl.ficlit.unibo.it/iiif/2/45502/full/699,800/0/default.jpg")
+result=generic.getEntitiesWithLabel('BO0451_CAM6537_0001_piatto anteriore.jpg')
+
 for i in result:
-    print (i)
+    print (i.getId())
 
