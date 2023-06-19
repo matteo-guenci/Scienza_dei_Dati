@@ -13,6 +13,7 @@ class Processor (object):
 
     def setDbPathOrUrl (self, url:str):
         self.dbPathOrUrl=url
+        return True
 
     def getDbPathOrUrl (self):
         return self.dbPathOrUrl
@@ -22,7 +23,7 @@ class QueryProcessor (Processor):
         self.Entity=DataFrame()
     
     def getEntityById(self, id:str):
-
+        empty=DataFrame()
         if ".db" in self.dbPathOrUrl:
             def find_type (id):
                 with connect(self.dbPathOrUrl) as con:
@@ -78,7 +79,7 @@ class QueryProcessor (Processor):
                 result = read_sql(query, con, params=(id,))
                 if len(result)>0: return result.loc[:, ~result.columns.duplicated()]
 
-                return None
+                return empty
             
             return find_type(id)
                     
@@ -93,7 +94,7 @@ class QueryProcessor (Processor):
                     }
                     """
             df_sparq=get(self.dbPathOrUrl,query,True)
-            if len(df_sparq)==0: return None
+            if len(df_sparq)==0: return empty
             return df_sparq
 
 
@@ -110,7 +111,6 @@ class AnnotationProcessor (Processor):
                 return None
             else:
                 return pattern
-            pass
 
         self.Annotation = read_csv(path, keep_default_na=False, dtype={"id":"string",
                                                                              "body":"string",
@@ -129,7 +129,8 @@ class AnnotationProcessor (Processor):
             self.Image.to_sql("Image", con, if_exists="replace", index=False)
             self.Annotation.to_sql("Annotation", con, if_exists="replace", index=False)
             con.commit()
-            
+        
+        return True
 
 class MetadataProcessor (Processor):
     def __init__(self):
@@ -242,12 +243,7 @@ class MetadataProcessor (Processor):
             self.Manifest_items.to_sql("Manifest_Items", con, if_exists="replace", index=False)
             con.commit()
 
-        # print(self.Collection)
-        # print(self.Manifest)
-        # print(self.Canvas)
-        # print(self.Creator)
-        # print(self.Collection_items)
-        # print(self.Manifest_items)
+        return True
 
     
 class CollectionProcessor(Processor):
@@ -314,6 +310,8 @@ class CollectionProcessor(Processor):
         #store.update(delete_query)
         # Once finished, remeber to close the connection
         store.close()
+
+        return True
         
 class TriplestoreQueryProcessor(QueryProcessor):
     # def __init__(self, Canvas, Manifest, Collection, Canvases_Collection,Canvases_Manifest,Entities_Label,Manifest_Collections):
@@ -375,7 +373,7 @@ class TriplestoreQueryProcessor(QueryProcessor):
         self.Manifests=df_sparq
         return self.Manifests
         
-    def getCanvasesInCollections(self, collectionId:str):
+    def getCanvasesInCollection(self, collectionId:str):
         query="""
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
@@ -525,37 +523,34 @@ class GenericQueryProcessor (object):
     
     def addQueryProcessor(self, processor):
         self.queryProcessors.append(processor)
+        return True
 
     def cleanQueryProcessor(self):
         self.queryProcessor=list()
+        return True
 
     def getAllCollections(self):
         result = list()
         temp = DataFrame()
         temp_2 = DataFrame()
-        entities_rel= DataFrame()
-        entities_trp=DataFrame()
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
-                #print ("oktrpl")
+
                 try:
                     temp=temp._append(i.getAllCollections())
                 except (FutureWarning, AttributeError):
                     temp=temp.append(i.getAllCollections())
-        
-        
         for i in self.queryProcessors:
-            if type(i) == RelationalQueryProcessor: 
+            if type(i) == RelationalQueryProcessor:
+
                 for index,row in temp.iterrows():
                     
-                    temp_2=i.getEntityById(row[temp.columns.get_loc("collections")])
-                    if temp_2 is not None:
-
-                        
+                    temp_2 = i.getEntityById(row[temp.columns.get_loc("collections")])
+                    if not temp_2.empty:
                         result.append(Collection(str(row[temp.columns.get_loc("collections")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("collections")]))))
                     else:
-                        
                         result.append(Collection(str(row[temp.columns.get_loc("collections")]), None, str(row[temp.columns.get_loc("label")]), None, self.getManifestsInCollection(str(row[temp.columns.get_loc("collections")]))))
+                    
         
         return result
     
@@ -568,10 +563,10 @@ class GenericQueryProcessor (object):
         
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor: 
-                    if temp is not None:
+                    if not temp.empty:
                         for index,row in temp.iterrows(): 
                             temp_2=i.getEntityById(row[temp.columns.get_loc("id")])
-                            if temp_2 is not None:
+                            if not temp_2.empty:
                                 if "collection" in id:
                                     return Collection(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
                                 elif "manifest" in id:
@@ -640,9 +635,9 @@ class GenericQueryProcessor (object):
             if type(i) == RelationalQueryProcessor:
 
                 for index,row in temp.iterrows():
-                    #RIEMPIRE CON ITEMS!!!!!!!!!!!!!!!!!!!!
+                    
                     temp_2 = i.getEntityById(row[temp.columns.get_loc("manifest")])
-                    if temp_2 is not None:
+                    if not temp_2.empty:
                         
                         result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("manifest")]))))
                     else:
@@ -669,7 +664,7 @@ class GenericQueryProcessor (object):
                     # id = row[temp.columns.get_loc("manifest")]
                     # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(row[temp.columns.get_loc("canvas")])
-                    if temp_2 is not None:
+                    if not temp_2.empty:
                         
                         result.append(Canvas(str(row[temp.columns.get_loc("canvas")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0])))
                     else:
@@ -709,7 +704,7 @@ class GenericQueryProcessor (object):
                     # id = row[temp.columns.get_loc("manifest")]
                     # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(id)
-                    if temp_2 is not None:
+                    if not temp_2.empty:
                         with connect(i.dbPathOrUrl) as con:
                             query = """SELECT Manifest.id
                                         FROM Collection_Items
@@ -724,7 +719,7 @@ class GenericQueryProcessor (object):
 
                         return result
 
-                    elif temp is not None:
+                    elif not temp.empty:
                         for i, row in temp.iterrows():
                             result.append(self.getEntityById(str(row[temp.columns.get_loc("items")])))
                         return result
@@ -747,7 +742,7 @@ class GenericQueryProcessor (object):
                     # id = row[temp.columns.get_loc("manifest")]
                     # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(id)
-                    if temp_2 is not None:
+                    if not temp_2.empty:
                         with connect(i.dbPathOrUrl) as con:
                             query = """SELECT Canvas.id
                                         FROM Manifest_Items
@@ -762,7 +757,7 @@ class GenericQueryProcessor (object):
 
                         return result
 
-                    elif temp is not None:
+                    elif not temp.empty:
                         for i, row in temp.iterrows():
                             result.append(self.getEntityById(str(row[temp.columns.get_loc("canvas")])))
                         return result
@@ -777,7 +772,7 @@ class GenericQueryProcessor (object):
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
                 #print ("oktrpl")
-                    temp=i.getCanvasesInCollections(id)
+                    temp=i.getCanvasesInCollection(id)
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
                 #print ("okrel")
@@ -785,7 +780,7 @@ class GenericQueryProcessor (object):
                     # id = row[temp.columns.get_loc("manifest")]
                     # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(id)
-                    if temp_2 is not None:
+                    if not temp_2.empty:
                         with connect(i.dbPathOrUrl) as con:
                             query = """SELECT Canvas.id
                                     FROM Collection
@@ -802,7 +797,7 @@ class GenericQueryProcessor (object):
 
                         return result
 
-                    elif temp is not None:
+                    elif not temp.empty:
                         for i, row in temp.iterrows():
                             result.append(self.getEntityById(str(row[temp.columns.get_loc("canvas")])))
                         return result
