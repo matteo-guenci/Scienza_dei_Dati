@@ -7,6 +7,9 @@ class Annotation(IdentifiableEntity):
         self.motivation = motivation
         self.target = target
         self.body = body
+
+    def getTarget(self):
+        return self.target
     
 class Image(IdentifiableEntity):
     pass

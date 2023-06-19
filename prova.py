@@ -30,12 +30,16 @@ rel_qp.setDbPathOrUrl(rel_path)
 generic = GenericQueryProcessor()
 generic.addQueryProcessor(rel_qp)
 generic.addQueryProcessor(grp_qp)
-result = generic.getAllAnnotations()
-for i in result:
-    print(i.getMotivation())
+# result = generic.getAllAnnotations()
+# for i in result:
+#     print(i.getMotivation())
 
-result2=generic.getAllCollections()
-for i in result2:
-    print(i.getCreators())
+# result2=generic.getAllCollections()
+# for i in result2:
+#     print(i.getCreators())
+result=generic.getAllAnnotations()
+for i in result:
+    target=i.getTarget()
+    print(target.getId())
 # print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/2/28429/annotation/p0001-image"))
 
