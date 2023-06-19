@@ -88,7 +88,7 @@ class QueryProcessor (Processor):
                     PREFIX ast: <http://www.w3.org/ns/activitystreams#>
                     PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-                    select ?label ?items where {<"""+str(id)+"""> rdfs:label ?label.
+                    select ?id ?label ?items where {VALUES ?id { <"""+str(id)+"""> } <"""+str(id)+"""> rdfs:label ?label.
                     optional {<"""+str(id)+"""> ast:items ?items.}
                     }
                     """
@@ -529,6 +529,55 @@ class GenericQueryProcessor (object):
     def cleanQueryProcessor(self):
         self.queryProcessor=list()
 
+    def getAllCollections(self):
+        result = list()
+        temp = DataFrame()
+        temp_2 = DataFrame()
+        entities_rel= DataFrame()
+        entities_trp=DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == TriplestoreQueryProcessor:
+                #print ("oktrpl")
+                try:
+                    temp=temp._append(i.getAllCollections())
+                except (FutureWarning, AttributeError):
+                    temp=temp.append(i.getAllCollections())
+        
+        
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor: 
+                for index,row in temp.iterrows():
+                    
+                    temp_2=i.getEntityById(row[temp.columns.get_loc("collections")])
+                    if temp_2 is not None:
+                        
+                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0])))
+                    else:
+                        
+                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), None, str(row[temp.columns.get_loc("label")]), None))
+
+            #     for index,row in temp.iterrows():
+            #         entities_rel=entities_rel.append(i.getEntityById(row[temp.columns.get_loc("collections")]))
+            # if type(i) == TriplestoreQueryProcessor:
+            #     for index,row in temp.iterrows():
+            #         entities_trp=entities_trp.append(i.getEntityById(row[temp.columns.get_loc("collections")]))
+        
+            # if type(i) == RelationalQueryProcessor:
+            #     pass
+            #     #print ("okrel")
+            #     for index,row in entities.iterrows():
+            #         pass
+            #         # id = row[temp.columns.get_loc("manifest")]
+            #         # label = row[temp.columns.get_loc("label")]
+            #         # print (i.getEntityById(row[temp.columns.get_loc("collections")]))
+            #         # temp_2 = i.getEntityById(row[temp.columns.get_loc("collections")])
+                    
+            #         #result.append(Collection(str(row[entities.columns.get_loc("collections")]), str(entities[index]["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(entities[index][["title"]])))
+        #entities=merge(entities_rel, entities_trp)
+        #print (entities)
+        
+        return result
+
     def getAllAnnotations(self):
         result = list()
         annotations=DataFrame()
@@ -554,8 +603,6 @@ class GenericQueryProcessor (object):
         result = list()
         temp = DataFrame()
         temp_2 = DataFrame()
-        id = ""
-        label = ""
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
                 #print ("oktrpl")
@@ -625,7 +672,11 @@ class Collection(EntityWithMetadata):
         # super().__init__(label)
         # super().__init__(title)
         self.label = label
-        self.items = list()       
+        self.items = list()      
+    def getItems():
+        pass 
+
+
 
 class Manifest(EntityWithMetadata):
     def __init__(self, id, creators:list, label, title):
