@@ -550,68 +550,52 @@ class GenericQueryProcessor (object):
                     
                     temp_2=i.getEntityById(row[temp.columns.get_loc("collections")])
                     if temp_2 is not None:
+
                         
-                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0])))
+                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("collections")]))))
                     else:
                         
-                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), None, str(row[temp.columns.get_loc("label")]), None))
-
-            #     for index,row in temp.iterrows():
-            #         entities_rel=entities_rel.append(i.getEntityById(row[temp.columns.get_loc("collections")]))
-            # if type(i) == TriplestoreQueryProcessor:
-            #     for index,row in temp.iterrows():
-            #         entities_trp=entities_trp.append(i.getEntityById(row[temp.columns.get_loc("collections")]))
-        
-            # if type(i) == RelationalQueryProcessor:
-            #     pass
-            #     #print ("okrel")
-            #     for index,row in entities.iterrows():
-            #         pass
-            #         # id = row[temp.columns.get_loc("manifest")]
-            #         # label = row[temp.columns.get_loc("label")]
-            #         # print (i.getEntityById(row[temp.columns.get_loc("collections")]))
-            #         # temp_2 = i.getEntityById(row[temp.columns.get_loc("collections")])
-                    
-            #         #result.append(Collection(str(row[entities.columns.get_loc("collections")]), str(entities[index]["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(entities[index][["title"]])))
-        #entities=merge(entities_rel, entities_trp)
-        #print (entities)
+                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), None, str(row[temp.columns.get_loc("label")]), None, self.getManifestsInCollection(str(row[temp.columns.get_loc("collections")]))))
         
         return result
     
     def getEntityById (self, id):
             
-            for i in self.queryProcessors:
-                if type(i) == TriplestoreQueryProcessor:
-                        temp=i.getEntityById(id)
-            
-            for i in self.queryProcessors:
-                if type(i) == RelationalQueryProcessor: 
-                    for index,row in temp.iterrows():
-                        
-                        if temp is not None:
-                            temp_2=i.getEntityById(row[temp.columns.get_loc("id")])
-                            if temp_2 is not None:
-                                if "collection" in id:
-                                    return Collection(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
-                                elif "manifest" in id:
-                                    return Manifest(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
-                                elif "canvas" in id:
-                                    return Canvas(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
-                                elif "annotation" in id:
-                                    return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
-                                else:
-                                    return Image(str(temp_2["image_url"].values[0]))
+        for i in self.queryProcessors:
+            if type(i) == TriplestoreQueryProcessor:
+                    temp=i.getEntityById(id)
+        
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor: 
+                for index,row in temp.iterrows():
+                    
+                    if temp is not None:
+                        temp_2=i.getEntityById(row[temp.columns.get_loc("id")])
+                        if temp_2 is not None:
+                            if "collection" in id:
+                                return Collection(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
+                            elif "manifest" in id:
+                                return Manifest(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
+                            elif "canvas" in id:
+                                return Canvas(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
+                            elif "annotation" in id:
+                                return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
                             else:
-                                if "collection" in id:
-                                    return Collection(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None)
-                                elif "manifest" in id:
-                                    return Manifest(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None)
-                                elif "canvas" in id:
-                                    return Canvas(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None)
-                                elif "annotation" in id:
-                                    return Annotation(None, None, None, None)
-                                else:
-                                    return Image(None, None, None, None)
+                                return Image(str(temp_2["image_url"].values[0]))
+                        else:
+                            if "collection" in id:
+                                return Collection(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None, self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
+                            elif "manifest" in id:
+                                return Manifest(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None, self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
+                            elif "canvas" in id:
+                                return Canvas(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None)
+                            elif "annotation" in id:
+                                return Annotation(None, None, None, None)
+                            else:
+                                return Image(None, None, None, None)
+
+        return None                    
+            
 
     def getAllAnnotations(self):
                             
@@ -636,24 +620,22 @@ class GenericQueryProcessor (object):
         temp_2 = DataFrame()
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
-                #print ("oktrpl")
+
                 try:
                     temp=temp._append(i.getAllManifests())
                 except (FutureWarning, AttributeError):
                     temp=temp.append(i.getAllManifests())
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
-                #print ("okrel")
+
                 for index,row in temp.iterrows():
-                    # id = row[temp.columns.get_loc("manifest")]
-                    # label = row[temp.columns.get_loc("label")]
+                    #RIEMPIRE CON ITEMS!!!!!!!!!!!!!!!!!!!!
                     temp_2 = i.getEntityById(row[temp.columns.get_loc("manifest")])
                     if temp_2 is not None:
                         
-                        result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0])))
+                        result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("manifest")]))))
                     else:
-                        
-                        result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), None, str(row[temp.columns.get_loc("label")]), None))
+                        result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), None, str(row[temp.columns.get_loc("label")]), None, self.getCanvasesInManifest(str(row[temp.columns.get_loc("manifest")]))))
                     
         
         return result
@@ -701,6 +683,122 @@ class GenericQueryProcessor (object):
             if type(i) == TriplestoreQueryProcessor:
                 pass
 
+    def getManifestsInCollection(self, id):
+        result = list()
+        temp = DataFrame()
+        temp_2 = DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == TriplestoreQueryProcessor:
+                #print ("oktrpl")
+                    temp=i.getEntityById(id)
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                #print ("okrel")
+                for index,row in temp.iterrows():
+                    # id = row[temp.columns.get_loc("manifest")]
+                    # label = row[temp.columns.get_loc("label")]
+                    temp_2 = i.getEntityById(id)
+                    if temp_2 is not None:
+                        with connect(i.dbPathOrUrl) as con:
+                            query = """SELECT Manifest.id
+                                        FROM Collection_Items
+                                        LEFT JOIN Collection ON Collection.internalID = Collection_Items.collection_id
+                                        LEFT JOIN Manifest ON Manifest.internalID = Collection_Items.manifest_id
+                                        WHERE Collection.id=?
+                                    """
+                            result_query = read_sql(query, con, params=(id,))
+
+                        for i, row in result_query.iterrows():
+                            result.append(self.getEntityById(str(row[result_query.columns.get_loc("id")])))
+
+                        return result
+
+                    elif temp is not None:
+                        for i, row in temp.iterrows():
+                            result.append(self.getEntityById(str(row[temp.columns.get_loc("items")])))
+                        return result
+                    else: return None
+        
+        return result
+    
+    def getCanvasesInManifest(self, id):
+        result = list()
+        temp = DataFrame()
+        temp_2 = DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == TriplestoreQueryProcessor:
+                #print ("oktrpl")
+                    temp=i.getCanvasesInManifests(id)
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                #print ("okrel")
+                for index,row in temp.iterrows():
+                    # id = row[temp.columns.get_loc("manifest")]
+                    # label = row[temp.columns.get_loc("label")]
+                    temp_2 = i.getEntityById(id)
+                    if temp_2 is not None:
+                        with connect(i.dbPathOrUrl) as con:
+                            query = """SELECT Canvas.id
+                                        FROM Manifest_Items
+                                        LEFT JOIN Manifest ON Manifest.internalID = Manifest_Items.manifest_id
+                                        LEFT JOIN Canvas ON Canvas.internalID = Manifest_Items.canvas_id
+                                        WHERE Manifest.id=?
+                                    """
+                            result_query = read_sql(query, con, params=(id,))
+
+                        for i, row in result_query.iterrows():
+                            result.append(self.getEntityById(str(row[result_query.columns.get_loc("id")])))
+
+                        return result
+
+                    elif temp is not None:
+                        for i, row in temp.iterrows():
+                            result.append(self.getEntityById(str(row[temp.columns.get_loc("canvas")])))
+                        return result
+                    else: return None
+        
+        return result
+    
+    def getCanvasesInCollection (self, id):
+        result = list()
+        temp = DataFrame()
+        temp_2 = DataFrame()
+        for i in self.queryProcessors:
+            if type(i) == TriplestoreQueryProcessor:
+                #print ("oktrpl")
+                    temp=i.getCanvasesInCollections(id)
+        for i in self.queryProcessors:
+            if type(i) == RelationalQueryProcessor:
+                #print ("okrel")
+                for index,row in temp.iterrows():
+                    # id = row[temp.columns.get_loc("manifest")]
+                    # label = row[temp.columns.get_loc("label")]
+                    temp_2 = i.getEntityById(id)
+                    if temp_2 is not None:
+                        with connect(i.dbPathOrUrl) as con:
+                            query = """SELECT Canvas.id
+                                    FROM Collection
+                                    LEFT JOIN Collection_Items ON Collection.internalID = Collection_Items.collection_id
+                                    LEFT JOIN Manifest ON Collection_Items.manifest_id = Manifest.internalID
+                                    LEFT JOIN Manifest_Items ON Manifest.internalID = Manifest_Items.manifest_id
+                                    LEFT JOIN Canvas ON Manifest_Items.canvas_id = Canvas.internalID
+                                    WHERE Collection.id=?
+                                    """
+                            result_query = read_sql(query, con, params=(id,))
+
+                        for i, row in result_query.iterrows():
+                            result.append(self.getEntityById(str(row[result_query.columns.get_loc("id")])))
+
+                        return result
+
+                    elif temp is not None:
+                        for i, row in temp.iterrows():
+                            result.append(self.getEntityById(str(row[temp.columns.get_loc("canvas")])))
+                        return result
+                    else: return None
+        
+        return result
+
 class IdentifiableEntity(object):
     def __init__(self, id):
         self.id = id
@@ -739,29 +837,31 @@ class EntityWithMetadata(IdentifiableEntity):
         return self.creators
 
 class Collection(EntityWithMetadata):
-    def __init__(self, id, creators, label, title):
+    def __init__(self, id, creators, label, title, items):
         super().__init__(id, label, title, creators)
         # super().__init__(creator)
         # super().__init__(label)
         # super().__init__(title)
-        self.label = label
-        self.items = list()      
-    def getItems():
-        pass 
+        
+        self.items = items
+    def getItems(self):
+        return self.items
+ 
 
 
 
 class Manifest(EntityWithMetadata):
-    def __init__(self, id, creators:list, label, title):
+    def __init__(self, id, creators:list, label, title, items):
         super().__init__(id, label, title, creators)
         # super().__init__(creator)
         # super().__init__(label)
         # super().__init__(title)
-        self.label = label 
-        self.items = list()
-    def getItems():
-        pass
+        self.items = items 
 
+        #self.items = items
+    def getItems(self):
+        return self.items
+    
 class Canvas(EntityWithMetadata):
     def __init__(self, id, creators, label, title):
         super().__init__(id, label, title, creators)
