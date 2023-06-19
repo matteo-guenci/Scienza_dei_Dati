@@ -128,6 +128,7 @@ class AnnotationProcessor (Processor):
             self.Image.to_sql("Image", con, if_exists="replace", index=False)
             self.Annotation.to_sql("Annotation", con, if_exists="replace", index=False)
             con.commit()
+            
 
 class MetadataProcessor (Processor):
     def __init__(self):
@@ -339,7 +340,8 @@ class TriplestoreQueryProcessor(QueryProcessor):
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
         PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-        select ?canvas where {?canvas a iiif_prezi:Canvas.}
+        select ?canvas ?label where {?canvas a iiif_prezi:Canvas;
+                                                rdfs:label ?label}
         """
         df_sparq=get(self.dbPathOrUrl,query,True)
         self.Canvas=df_sparq
@@ -351,7 +353,8 @@ class TriplestoreQueryProcessor(QueryProcessor):
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
         PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-        select ?collections where {?collections a iiif_prezi:Collection.}
+        select ?collections ?label where {?collections a iiif_prezi:Collection;
+                                                rdfs:label ?label}
         """
         df_sparq=get(self.dbPathOrUrl,query,True)
         self.Collections=df_sparq
@@ -377,8 +380,9 @@ class TriplestoreQueryProcessor(QueryProcessor):
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
         PREFIX iiif_prezi: <http://iiif.io/api/presentation/3#>
 
-        select ?canvas where {<"""+str(collectionId)+"""> ast:items ?manifest.
-                     ?manifest ast:items ?canvas}
+        select ?canvas ?label where {<"""+str(collectionId)+"""> ast:items ?manifest.
+                     ?manifest ast:items ?canvas.
+                     ?canvas rdfs:label ?label}
         """
         df_sparq=get(self.dbPathOrUrl,query,True)
         self.Canvases_Collections=df_sparq
@@ -527,9 +531,13 @@ class GenericQueryProcessor (object):
 
     def getAllAnnotations(self):
         result = list()
+        annotations=DataFrame()
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
-                annotations = i.getAllAnnotations()
+                try:
+                    annotations = annotations._append(i.getAllAnnotations())
+                except (FutureWarning, AttributeError):
+                    annotations = annotations.append(i.getAllAnnotations())
                 for j, row in annotations.iterrows():
                     
                     result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), str(row[annotations.columns.get_loc("target")]), str(row[annotations.columns.get_loc("body")])))
@@ -551,7 +559,10 @@ class GenericQueryProcessor (object):
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
                 #print ("oktrpl")
-                temp = i.getAllManifests()
+                try:
+                    temp=temp._append(i.getAllManifests())
+                except (FutureWarning, AttributeError):
+                    temp=temp.append(i.getAllManifests())
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
                 #print ("okrel")
