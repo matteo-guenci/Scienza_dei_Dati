@@ -388,7 +388,7 @@ class TriplestoreQueryProcessor(QueryProcessor):
         return self.Canvases_Collections
 
     
-    def getCanvasesInManifests(self, manifestId:str):
+    def getCanvasesInManifest(self, manifestId:str):
         query="""
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
@@ -414,7 +414,7 @@ class TriplestoreQueryProcessor(QueryProcessor):
         self.Entities_Label=df_sparq
         return self.Entities_Label
     
-    def getManifetsInCollections (self, collectionId:str):
+    def getManifestsInCollection (self, collectionId:str):
         query="""
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX ast: <http://www.w3.org/ns/activitystreams#>
@@ -575,8 +575,9 @@ class GenericQueryProcessor (object):
                                     return Canvas(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
                                 elif "annotation" in id:
                                     return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
-                                else:
+                                elif "/full/" in id:
                                     return Image(str(temp_2["image_url"].values[0]))
+                                else: return None
                             else:
                                 if "collection" in id:
                                     return Collection(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None, self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
@@ -586,8 +587,9 @@ class GenericQueryProcessor (object):
                                     return Canvas(str(row[temp.columns.get_loc("id")]), None, str(row[temp.columns.get_loc("label")]), None)
                                 elif "annotation" in id:
                                     return Annotation(None, None, None, None)
-                                else:
+                                elif "/full/" in id:
                                     return Image(None)
+                                else: return None
                     else:
                         temp_2=i.getEntityById(id)
                         if "collection" in id:
@@ -598,8 +600,9 @@ class GenericQueryProcessor (object):
                             return Canvas(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split(";"), None, str(temp_2["title"].values[0]))
                         elif "annotation" in id:
                             return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
-                        else:
+                        elif "/full/" in id:
                             return Image(str(temp_2["image_url"].values[0]))
+                        else: return None
         return None                    
             
 
@@ -734,7 +737,7 @@ class GenericQueryProcessor (object):
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
                 #print ("oktrpl")
-                    temp=i.getCanvasesInManifests(id)
+                    temp=i.getCanvasesInManifest(id)
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
                 #print ("okrel")
@@ -945,13 +948,14 @@ class GenericQueryProcessor (object):
                     
                 for j, row in table.iterrows():
                     if row[table.columns.get_loc("Collection_Id")]:
-                        result.append(self.getEntityById(row[table.columns.get_loc("Collection_Id")]))
+                        entity=self.getEntityById(row[table.columns.get_loc("Collection_Id")])
+                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
                     if row[table.columns.get_loc("Manifest_Id")]:
-                        
-                        result.append(self.getEntityById(row[table.columns.get_loc("Manifest_Id")]))
+                        entity=self.getEntityById(row[table.columns.get_loc("Manifest_Id")])
+                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
                     if row[table.columns.get_loc("Canvas_Id")]:
-                        result.append(self.getEntityById(row[table.columns.get_loc("Canvas_Id")]))
-                
+                        entity=self.getEntityById(row[table.columns.get_loc("Canvas_Id")])
+                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
             if type(i) == TriplestoreQueryProcessor:
                 pass
         return result
@@ -968,12 +972,14 @@ class GenericQueryProcessor (object):
                     
                 for j, row in table.iterrows():
                     if row[table.columns.get_loc("Collection_Id")]:
-                        result.append(self.getEntityById(row[table.columns.get_loc("Collection_Id")]))
+                        entity=self.getEntityById(row[table.columns.get_loc("Collection_Id")])
+                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
                     if row[table.columns.get_loc("Manifest_Id")]:
-                        
-                        result.append(self.getEntityById(row[table.columns.get_loc("Manifest_Id")]))
+                        entity=self.getEntityById(row[table.columns.get_loc("Manifest_Id")])
+                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
                     if row[table.columns.get_loc("Canvas_Id")]:
-                        result.append(self.getEntityById(row[table.columns.get_loc("Canvas_Id")]))
+                        entity=self.getEntityById(row[table.columns.get_loc("Canvas_Id")])
+                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
                 
             if type(i) == TriplestoreQueryProcessor:
                 pass
@@ -993,7 +999,8 @@ class GenericQueryProcessor (object):
                     table = table.append(i.getEntitiesWithLabel(label))
 
                 for j, row in table.iterrows():
-                    result.append(self.getEntityById(row[table.columns.get_loc("s")]))
+                    entity=self.getEntityById(row[table.columns.get_loc("s")])
+                    result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
 
         return result
     
