@@ -143,11 +143,7 @@ class MetadataProcessor (Processor):
         self.Manifest_items=DataFrame()
 
     def uploadData (self, path:str):
-        
-        def replacer(j):
-            return j.replace('""', '"')
-        
-        
+                
         def extract_id(s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
@@ -433,8 +429,6 @@ class RelationalQueryProcessor (QueryProcessor):
         self.Images = DataFrame()
         self.entities = DataFrame()
         # self.query_processor = query_processor
-    def replacer(self, j):
-        return j.replace('""', '"')
     
     def extract_id(self, s):               #aggiunto
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
@@ -559,8 +553,6 @@ class GenericQueryProcessor (object):
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
                     temp=i.getEntityById(id)
-                    
-        
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor: 
                     if not temp.empty:
@@ -618,9 +610,10 @@ class GenericQueryProcessor (object):
                     annotations = annotations.append(i.getAllAnnotations())
                 for j, row in annotations.iterrows():
                     result.append(Annotation(str(row[annotations.columns.get_loc("id")]), str(row[annotations.columns.get_loc("motivation")]), self.getEntityById(str(row[annotations.columns.get_loc("target")])), Image(str(row[annotations.columns.get_loc("body")]))))
-                return result
+                
             if type(i) == TriplestoreQueryProcessor:
                 pass
+        return result
         
     
     def getAllManifests(self):
@@ -941,21 +934,23 @@ class GenericQueryProcessor (object):
         table = DataFrame()
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
-                try:
-                    table = table._append(i.getEntitiesWithCreator(creator))
-                except (FutureWarning, AttributeError):
-                    table = table.append(i.getEntitiesWithCreator(creator))
-                    
-                for j, row in table.iterrows():
-                    if row[table.columns.get_loc("Collection_Id")]:
-                        entity=self.getEntityById(row[table.columns.get_loc("Collection_Id")])
-                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
-                    if row[table.columns.get_loc("Manifest_Id")]:
-                        entity=self.getEntityById(row[table.columns.get_loc("Manifest_Id")])
-                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
-                    if row[table.columns.get_loc("Canvas_Id")]:
-                        entity=self.getEntityById(row[table.columns.get_loc("Canvas_Id")])
-                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                temp_2=i.getEntitiesWithCreator(creator)
+                if not temp_2.empty:
+                    if creator in str(temp_2["creator"].values[0]).split(";") or creator==str(temp_2["creator"].values[0]):
+                        try:
+                            table = table._append(i.getEntitiesWithCreator(creator))
+                        except (FutureWarning, AttributeError):
+                            table = table.append(i.getEntitiesWithCreator(creator))
+                        for j, row in table.iterrows():
+                            if row[table.columns.get_loc("Collection_Id")]:
+                                entity=self.getEntityById(row[table.columns.get_loc("Collection_Id")])
+                                result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                            if row[table.columns.get_loc("Manifest_Id")]:
+                                entity=self.getEntityById(row[table.columns.get_loc("Manifest_Id")])
+                                result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                            if row[table.columns.get_loc("Canvas_Id")]:
+                                entity=self.getEntityById(row[table.columns.get_loc("Canvas_Id")])
+                                result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
             if type(i) == TriplestoreQueryProcessor:
                 pass
         return result
