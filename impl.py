@@ -119,12 +119,7 @@ class AnnotationProcessor (Processor):
         self.Image = self.Annotation[["body"]]
         self.Image.insert(0, "imageID", Series(self.Annotation["body"].apply(extract_id), dtype="string"))
         self.Image = self.Image.rename(columns={"body":"image_url"})
-            # annotations_j = annotations_j.rename(columns={"internalID_x":"internalID", "id_x":"id", "internalID_y":"target"})
-
-        # df_joined = merge(self.Annotation, self.Image, left_on="body", right_on="image_url")
-        # self.Annotation = df_joined[["id", "imageID", "target", "motivation"]]
-        # self.Annotation = self.Annotation.rename(columns={"imageID":"body"})
-
+          
         with connect(self.dbPathOrUrl) as con:
             self.Image.to_sql("Image", con, if_exists="replace", index=False)
             self.Annotation.to_sql("Annotation", con, if_exists="replace", index=False)
@@ -144,7 +139,7 @@ class MetadataProcessor (Processor):
 
     def uploadData (self, path:str):
                 
-        def extract_id(s):               #aggiunto
+        def extract_id(s):             
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
                 return None
@@ -201,29 +196,21 @@ class MetadataProcessor (Processor):
 
         
         for index, row in self.Collection.iterrows():
-            # Iterate over rows in 'metadata' DataFrame
             for index_2, row_2 in self.Metadata.iterrows():
                 if "manifest" in row_2["id"]:
-                    # print (row["id"], row_2["id"], is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"))
                     if is_part_of(row["internalID"], row_2["internalID"], "collection", "manifest"):
-                        # Create a temporary DataFrame with the desired values
                         temp_df = DataFrame({"collection_id": [row["internalID"]], "manifest_id": [row_2["internalID"]]})
-                        # Append the temporary DataFrame to 'collection_items'
                         try:
                             self.Collection_items = self.Collection_items._append(temp_df)
                         except (FutureWarning, AttributeError):
                             self.Collection_items = self.Collection_items.append(temp_df)                            
         self.Collection_items = self.Collection_items.reset_index(drop=True)
 
-        # Iterate over rows in 'manifest' DataFrame
         for index, row in self.Manifest.iterrows():
-            # Iterate over rows in 'metadata' DataFrame
             for index_2, row_2 in self.Metadata.iterrows():
                 if "canvas" in row_2["id"]:
                     if is_part_of(row["internalID"], row_2["internalID"], "manifest", "canvas"):
-                        # Create a temporary DataFrame with the desired values
                         temp_df = DataFrame({"manifest_id": [row["internalID"]], "canvas_id": [row_2["internalID"]]})
-                        # Append the temporary DataFrame to 'manifest_items'
                         try:
                             self.Manifest_items = self.Manifest_items._append(temp_df)
                         except (FutureWarning, AttributeError):
@@ -274,8 +261,6 @@ class CollectionProcessor(Processor):
         with open(path, "r", encoding="utf-8") as f:
             json_doc1 = load(f)
 
-        # with open("./data/collection-2.json", "r", encoding="utf-8") as f:
-        #     json_doc2 = load(f)
 
         k_graph= Graph()
 
@@ -291,33 +276,18 @@ class CollectionProcessor(Processor):
 
         store = SPARQLUpdateStore()
 
-        # The URL of the SPARQL dbPathOrUrl is the same URL of the Blazegraph
-        # instance + '/sparql'
-        
-
-        # It opens the connection with the SPARQL dbPathOrUrl instance
         store.open((self.dbPathOrUrl, self.dbPathOrUrl))
 
-        #delete_query="""DELETE WHERE {?s ?p ?o.}"""
 
         for triple in k_graph.triples((None, None, None)):
             store.add(triple)
             
-        #store.update(delete_query)
-        # Once finished, remeber to close the connection
         store.close()
 
         return True
         
 class TriplestoreQueryProcessor(QueryProcessor):
-    # def __init__(self, Canvas, Manifest, Collection, Canvases_Collection,Canvases_Manifest,Entities_Label,Manifest_Collections):
-    #     self.canvas=get (dbPathOrUrl, Canvas,True)
-    #     self.Manifests=get (dbPathOrUrl, Manifest,True)
-    #     self.Collections=get (dbPathOrUrl, Collection, True)
-    #     self.Canvases_Collections=get (dbPathOrUrl, Canvases_Collection, True)
-    #     self.Canvases_Manifest=get (dbPathOrUrl, Canvases_Manifest, True)
-    #     self.Entities_Label=get (dbPathOrUrl, Entities_Label,True)
-    #     self.Manifest_Collections=get (dbPathOrUrl, Manifest_Collections,True)
+
         
     def __init__(self):
      self.Canvas=DataFrame()
@@ -395,7 +365,6 @@ class TriplestoreQueryProcessor(QueryProcessor):
         df_sparq=get(self.dbPathOrUrl,query,True)
         self.Canvases_Manifest=df_sparq
         return self.Canvases_Manifest
-        #ok
         
     def getEntitiesWithLabel(self, label:str):
         query="""
@@ -405,7 +374,6 @@ class TriplestoreQueryProcessor(QueryProcessor):
 
         select ?s where {?s rdfs:label \""""+str(label)+"""\"}       
         """
-        #se non va rivedi escape characters
         df_sparq=get(self.dbPathOrUrl,query,True)
         self.Entities_Label=df_sparq
         return self.Entities_Label
@@ -428,9 +396,8 @@ class RelationalQueryProcessor (QueryProcessor):
         self.Annotation = DataFrame()
         self.Images = DataFrame()
         self.entities = DataFrame()
-        # self.query_processor = query_processor
     
-    def extract_id(self, s):               #aggiunto
+    def extract_id(self, s):              
             pattern = re.search("(?<=iiif\/)[0-9_a-zA-Z](.+)",s).group()
             if pattern not in s:
                 return s
@@ -454,7 +421,6 @@ class RelationalQueryProcessor (QueryProcessor):
         return results
 
     def getAnnotationsWithBody(self,body):
-        #body = self.extract_id(body)
         with connect(self.dbPathOrUrl) as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
@@ -464,7 +430,6 @@ class RelationalQueryProcessor (QueryProcessor):
     
    
     def getAnnotationsWithBodyAndTarget(self, body, target):
-        #body = self.extract_id(body)
         with connect(self.dbPathOrUrl) as con:
             query = """SELECT id, body, target, motivation
             FROM Annotation
@@ -648,17 +613,13 @@ class GenericQueryProcessor (object):
         temp_2 = DataFrame()
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
-                #print ("oktrpl")
                 try:
                     temp=temp._append(i.getAllCanvases())
                 except (FutureWarning, AttributeError):
                     temp=temp.append(i.getAllCanvases())
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
-                #print ("okrel")
                 for index,row in temp.iterrows():
-                    # id = row[temp.columns.get_loc("manifest")]
-                    # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(row[temp.columns.get_loc("canvas")])
                     if not temp_2.empty:
                         
@@ -691,14 +652,10 @@ class GenericQueryProcessor (object):
         temp_2 = DataFrame()
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
-                #print ("oktrpl")
                     temp=i.getEntityById(id)
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
-                #print ("okrel")
                 for index,row in temp.iterrows():
-                    # id = row[temp.columns.get_loc("manifest")]
-                    # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(id)
                     if not temp_2.empty:
                         with connect(i.dbPathOrUrl) as con:
@@ -729,14 +686,10 @@ class GenericQueryProcessor (object):
         temp_2 = DataFrame()
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
-                #print ("oktrpl")
                     temp=i.getCanvasesInManifest(id)
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
-                #print ("okrel")
                 for index,row in temp.iterrows():
-                    # id = row[temp.columns.get_loc("manifest")]
-                    # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(id)
                     if not temp_2.empty:
                         with connect(i.dbPathOrUrl) as con:
@@ -767,14 +720,11 @@ class GenericQueryProcessor (object):
         temp_2 = DataFrame()
         for i in self.queryProcessors:
             if type(i) == TriplestoreQueryProcessor:
-                #print ("oktrpl")
                     temp=i.getCanvasesInCollection(id)
         for i in self.queryProcessors:
             if type(i) == RelationalQueryProcessor:
                 #print ("okrel")
                 for index,row in temp.iterrows():
-                    # id = row[temp.columns.get_loc("manifest")]
-                    # label = row[temp.columns.get_loc("label")]
                     temp_2 = i.getEntityById(id)
                     if not temp_2.empty:
                         with connect(i.dbPathOrUrl) as con:
@@ -1046,9 +996,7 @@ class EntityWithMetadata(IdentifiableEntity):
 class Collection(EntityWithMetadata):
     def __init__(self, id, creators, label, title, items):
         super().__init__(id, label, title, creators)
-        # super().__init__(creator)
-        # super().__init__(label)
-        # super().__init__(title)
+
         
         self.items = items
     def getItems(self):
@@ -1060,19 +1008,14 @@ class Collection(EntityWithMetadata):
 class Manifest(EntityWithMetadata):
     def __init__(self, id, creators:list, label, title, items):
         super().__init__(id, label, title, creators)
-        # super().__init__(creator)
-        # super().__init__(label)
-        # super().__init__(title)
+
         self.items = items 
 
-        #self.items = items
     def getItems(self):
         return self.items
     
 class Canvas(EntityWithMetadata):
     def __init__(self, id, creators, label, title):
         super().__init__(id, label, title, creators)
-        # super().__init__(creator)
-        # super().__init__(label)
-        # super().__init__(title)
+
         self.label = label
