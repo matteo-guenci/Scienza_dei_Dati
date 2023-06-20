@@ -681,10 +681,12 @@ class GenericQueryProcessor (object):
                 for j, row in images.iterrows():
                     
                     result.append(Image(str(row[images.columns.get_loc("image_url")])))
-                return result
+                
             if type(i) == TriplestoreQueryProcessor:
                 pass
 
+        return result
+    
     def getManifestsInCollection(self, id):
         result = list()
         temp = DataFrame()
@@ -719,7 +721,7 @@ class GenericQueryProcessor (object):
                         for i, row in temp.iterrows():
                             result.append(self.getEntityById(str(row[temp.columns.get_loc("items")])))
                         return result
-                    else: return None
+                    else: return result
         
         return result
     
@@ -757,7 +759,7 @@ class GenericQueryProcessor (object):
                         for i, row in temp.iterrows():
                             result.append(self.getEntityById(str(row[temp.columns.get_loc("canvas")])))
                         return result
-                    else: return None
+                    else: return result
         
         return result
     
@@ -797,7 +799,7 @@ class GenericQueryProcessor (object):
                         for i, row in temp.iterrows():
                             result.append(self.getEntityById(str(row[temp.columns.get_loc("canvas")])))
                         return result
-                    else: return None
+                    else: return result
         
         return result
     
