@@ -506,7 +506,7 @@ class GenericQueryProcessor (object):
                     
                     temp_2 = i.getEntityById(row[temp.columns.get_loc("collections")])
                     if not temp_2.empty:
-                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("collections")]))))
+                        result.append(Collection(str(row[temp.columns.get_loc("collections")]), str(temp_2["creator"].values[0]).split("; "), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("collections")]))))
                     else:
                         result.append(Collection(str(row[temp.columns.get_loc("collections")]), None, str(row[temp.columns.get_loc("label")]), None, self.getManifestsInCollection(str(row[temp.columns.get_loc("collections")]))))
                     
@@ -525,11 +525,11 @@ class GenericQueryProcessor (object):
                             temp_2=i.getEntityById(row[temp.columns.get_loc("id")])
                             if not temp_2.empty:
                                 if "collection" in id:
-                                    return Collection(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
+                                    return Collection(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split("; "), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getManifestsInCollection(str(row[temp.columns.get_loc("id")])))
                                 elif "manifest" in id:
-                                    return Manifest(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
+                                    return Manifest(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split("; "), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("id")])))
                                 elif "canvas" in id:
-                                    return Canvas(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
+                                    return Canvas(str(row[temp.columns.get_loc("id")]), str(temp_2["creator"].values[0]).split("; "), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]))
                                 elif "annotation" in id:
                                     return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
                                 elif "/full/" in id:
@@ -550,11 +550,11 @@ class GenericQueryProcessor (object):
                     else:
                         temp_2=i.getEntityById(id)
                         if "collection" in id:
-                            return Collection(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split(";"), None, str(temp_2["title"].values[0]), self.getManifestsInCollection(id))
+                            return Collection(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split("; "), None, str(temp_2["title"].values[0]), self.getManifestsInCollection(id))
                         elif "manifest" in id:
-                            return Manifest(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split(";"), None, str(temp_2["title"].values[0]), self.getCanvasesInManifest(id))
+                            return Manifest(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split("; "), None, str(temp_2["title"].values[0]), self.getCanvasesInManifest(id))
                         elif "canvas" in id:
-                            return Canvas(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split(";"), None, str(temp_2["title"].values[0]))
+                            return Canvas(str(temp_2.columns.get_loc("id")), str(temp_2["creator"].values[0]).split("; "), None, str(temp_2["title"].values[0]))
                         elif "annotation" in id:
                             return Annotation(str(temp_2["id"].values[0]), str(temp_2["motivation"].values[0]), str(temp_2["target"].values[0]), str(temp_2["body"].values[0]))
                         elif "/full/" in id:
@@ -600,7 +600,7 @@ class GenericQueryProcessor (object):
                     temp_2 = i.getEntityById(row[temp.columns.get_loc("manifest")])
                     if not temp_2.empty:
                         
-                        result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("manifest")]))))
+                        result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), str(temp_2["creator"].values[0]).split("; "), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0]), self.getCanvasesInManifest(str(row[temp.columns.get_loc("manifest")]))))
                     else:
                         result.append(Manifest(str(row[temp.columns.get_loc("manifest")]), None, str(row[temp.columns.get_loc("label")]), None, self.getCanvasesInManifest(str(row[temp.columns.get_loc("manifest")]))))
                     
@@ -623,7 +623,7 @@ class GenericQueryProcessor (object):
                     temp_2 = i.getEntityById(row[temp.columns.get_loc("canvas")])
                     if not temp_2.empty:
                         
-                        result.append(Canvas(str(row[temp.columns.get_loc("canvas")]), str(temp_2["creator"].values[0]).split(";"), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0])))
+                        result.append(Canvas(str(row[temp.columns.get_loc("canvas")]), str(temp_2["creator"].values[0]).split("; "), str(row[temp.columns.get_loc("label")]), str(temp_2["title"].values[0])))
                     else:
                         
                         result.append(Canvas(str(row[temp.columns.get_loc("canvas")]), None, str(row[temp.columns.get_loc("label")]), None))      
@@ -888,21 +888,18 @@ class GenericQueryProcessor (object):
             if type(i) == RelationalQueryProcessor:
                 temp_2=i.getEntitiesWithCreator(creator)
                 if not temp_2.empty:
-                    if creator in str(temp_2["creator"].values[0]).split(";") or creator==str(temp_2["creator"].values[0]):
+                    if creator in str(temp_2["creator"].values[0]).split("; ") or creator==str(temp_2["creator"].values[0]):
                         try:
                             table = table._append(i.getEntitiesWithCreator(creator))
                         except (FutureWarning, AttributeError):
                             table = table.append(i.getEntitiesWithCreator(creator))
                         for j, row in table.iterrows():
-                            if row[table.columns.get_loc("Collection_Id")]:
-                                entity=self.getEntityById(row[table.columns.get_loc("Collection_Id")])
-                                result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                            if row[table.columns.get_loc("Collection_Id")]:  
+                                result.append(self.getEntityById(row[table.columns.get_loc("Collection_Id")]))
                             if row[table.columns.get_loc("Manifest_Id")]:
-                                entity=self.getEntityById(row[table.columns.get_loc("Manifest_Id")])
-                                result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                                result.append(self.getEntityById(row[table.columns.get_loc("Manifest_Id")]))
                             if row[table.columns.get_loc("Canvas_Id")]:
-                                entity=self.getEntityById(row[table.columns.get_loc("Canvas_Id")])
-                                result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                                result.append(self.getEntityById(row[table.columns.get_loc("Canvas_Id")]))
             if type(i) == TriplestoreQueryProcessor:
                 pass
         return result
@@ -918,15 +915,12 @@ class GenericQueryProcessor (object):
                     table = table.append(i.getEntitiesWithTitle(title))
                     
                 for j, row in table.iterrows():
-                    if row[table.columns.get_loc("Collection_Id")]:
-                        entity=self.getEntityById(row[table.columns.get_loc("Collection_Id")])
-                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                    if row[table.columns.get_loc("Collection_Id")]:  
+                        result.append(self.getEntityById(row[table.columns.get_loc("Collection_Id")]))
                     if row[table.columns.get_loc("Manifest_Id")]:
-                        entity=self.getEntityById(row[table.columns.get_loc("Manifest_Id")])
-                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                        result.append(self.getEntityById(row[table.columns.get_loc("Manifest_Id")]))
                     if row[table.columns.get_loc("Canvas_Id")]:
-                        entity=self.getEntityById(row[table.columns.get_loc("Canvas_Id")])
-                        result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                        result.append(self.getEntityById(row[table.columns.get_loc("Canvas_Id")]))
                 
             if type(i) == TriplestoreQueryProcessor:
                 pass
@@ -946,8 +940,7 @@ class GenericQueryProcessor (object):
                     table = table.append(i.getEntitiesWithLabel(label))
 
                 for j, row in table.iterrows():
-                    entity=self.getEntityById(row[table.columns.get_loc("s")])
-                    result.append(EntityWithMetadata(entity.getId(),entity.getLabel(), entity.getTitle(), entity.getCreators()))
+                    result.append(self.getEntityById(row[table.columns.get_loc("s")]))
 
         return result
     

@@ -41,7 +41,7 @@ generic.addQueryProcessor(grp_qp)
 # for i in result:
 #     print (i.getId())
 # print(rel_qp.getEntityById("https://dl.ficlit.unibo.it/iiif/2/28429/annotation/p0001-image"))
-print(generic.getCanvasesInManifest("https://dl.ficlit.unibo.it/iiif/2/28429/manifest"))
+print (generic.getEntitiesWithLabel("c4r"))
 
 
 

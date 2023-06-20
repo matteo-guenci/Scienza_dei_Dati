@@ -34,50 +34,6 @@ class TestProjectBasic(unittest.TestCase):
     graph = "http://127.0.0.1:9999/blazegraph/sparql"
     
     def test_01_AnnotationProcessor(self):
-        ann_dp = AnnotationProcessor()
-        self.assertTrue(ann_dp.setDbPathOrUrl(self.relational))
-        self.assertEqual(ann_dp.getDbPathOrUrl(), self.relational)
-        self.assertTrue(ann_dp.uploadData(self.annotations))
-
-    def test_02_MetadataProcessor(self):
-        met_dp = MetadataProcessor()
-        self.assertTrue(met_dp.setDbPathOrUrl(self.relational))
-        self.assertEqual(met_dp.getDbPathOrUrl(), self.relational)
-        self.assertTrue(met_dp.uploadData(self.metadata))
-
-    def test_03_CollectionProcessor(self):
-        col_dp = CollectionProcessor()
-        self.assertTrue(col_dp.setDbPathOrUrl(self.graph))
-        self.assertEqual(col_dp.getDbPathOrUrl(), self.graph)
-        self.assertTrue(col_dp.uploadData(self.collection))
-
-    def test_04_RelationalQueryProcessor(self):
-        rel_qp = RelationalQueryProcessor()
-        self.assertTrue(rel_qp.setDbPathOrUrl(self.relational))
-
-        self.assertIsInstance(rel_qp.getAllAnnotations(), DataFrame)
-        self.assertIsInstance(rel_qp.getAllImages(), DataFrame)
-        self.assertIsInstance(rel_qp.getAnnotationsWithBody("just_a_test"), DataFrame)
-        self.assertIsInstance(rel_qp.getAnnotationsWithBodyAndTarget("just_a_test", "another_test"), DataFrame)
-        self.assertIsInstance(rel_qp.getAnnotationsWithTarget("just_a_test"), DataFrame)
-        self.assertIsInstance(rel_qp.getEntityById("just_a_test"), DataFrame)
-        self.assertIsInstance(rel_qp.getEntitiesWithCreator("just_a_test"), DataFrame)
-        self.assertIsInstance(rel_qp.getEntitiesWithTitle("just_a_test"), DataFrame)
-
-    def test_05_TriplestoreQueryProcessor(self):
-        grp_qp = TriplestoreQueryProcessor()
-        self.assertTrue(grp_qp.setDbPathOrUrl(self.graph))
-
-        self.assertIsInstance(grp_qp.getAllCanvases(), DataFrame)
-        self.assertIsInstance(grp_qp.getAllCollections(), DataFrame)
-        self.assertIsInstance(grp_qp.getAllManifests(), DataFrame)
-        self.assertIsInstance(grp_qp.getCanvasesInCollection("just_a_test"), DataFrame)
-        self.assertIsInstance(grp_qp.getCanvasesInManifest("just_a_test"), DataFrame)
-        self.assertIsInstance(grp_qp.getEntityById("just_a_test"), DataFrame)
-        self.assertIsInstance(grp_qp.getEntitiesWithLabel("just_a_test"), DataFrame)
-        self.assertIsInstance(grp_qp.getManifestsInCollection("just_a_test"), DataFrame)
-
-    def test_06_GenericQueryProcessor(self):
         rel_qp = RelationalQueryProcessor()
         rel_qp.setDbPathOrUrl(self.relational)
         grp_qp = TriplestoreQueryProcessor()
@@ -198,3 +154,55 @@ class TestProjectBasic(unittest.TestCase):
         self.assertIsInstance(man_2, list)
         for a in man_2:
             self.assertIsInstance(a, Manifest)
+
+    def test_02_MetadataProcessor(self):
+        met_dp = MetadataProcessor()
+        self.assertTrue(met_dp.setDbPathOrUrl(self.relational))
+        self.assertEqual(met_dp.getDbPathOrUrl(), self.relational)
+        self.assertTrue(met_dp.uploadData(self.metadata))
+
+    def test_03_CollectionProcessor(self):
+        col_dp = CollectionProcessor()
+        self.assertTrue(col_dp.setDbPathOrUrl(self.graph))
+        self.assertEqual(col_dp.getDbPathOrUrl(), self.graph)
+        self.assertTrue(col_dp.uploadData(self.collection))
+
+    def test_04_RelationalQueryProcessor(self):
+        rel_qp = RelationalQueryProcessor()
+        self.assertTrue(rel_qp.setDbPathOrUrl(self.relational))
+
+        self.assertIsInstance(rel_qp.getAllAnnotations(), DataFrame)
+        self.assertIsInstance(rel_qp.getAllImages(), DataFrame)
+        self.assertIsInstance(rel_qp.getAnnotationsWithBody("just_a_test"), DataFrame)
+        self.assertIsInstance(rel_qp.getAnnotationsWithBodyAndTarget("just_a_test", "another_test"), DataFrame)
+        self.assertIsInstance(rel_qp.getAnnotationsWithTarget("just_a_test"), DataFrame)
+        self.assertIsInstance(rel_qp.getEntityById("just_a_test"), DataFrame)
+        self.assertIsInstance(rel_qp.getEntitiesWithCreator("just_a_test"), DataFrame)
+        self.assertIsInstance(rel_qp.getEntitiesWithTitle("just_a_test"), DataFrame)
+
+    def test_05_TriplestoreQueryProcessor(self):
+        grp_qp = TriplestoreQueryProcessor()
+        self.assertTrue(grp_qp.setDbPathOrUrl(self.graph))
+
+        self.assertIsInstance(grp_qp.getAllCanvases(), DataFrame)
+        self.assertIsInstance(grp_qp.getAllCollections(), DataFrame)
+        self.assertIsInstance(grp_qp.getAllManifests(), DataFrame)
+        self.assertIsInstance(grp_qp.getCanvasesInCollection("just_a_test"), DataFrame)
+        self.assertIsInstance(grp_qp.getCanvasesInManifest("just_a_test"), DataFrame)
+        self.assertIsInstance(grp_qp.getEntityById("just_a_test"), DataFrame)
+        self.assertIsInstance(grp_qp.getEntitiesWithLabel("just_a_test"), DataFrame)
+        self.assertIsInstance(grp_qp.getManifestsInCollection("just_a_test"), DataFrame)
+
+    def test_06_GenericQueryProcessor(self):
+        ann_dp = AnnotationProcessor()
+        self.assertTrue(ann_dp.setDbPathOrUrl(self.relational))
+        self.assertEqual(ann_dp.getDbPathOrUrl(), self.relational)
+        self.assertTrue(ann_dp.uploadData(self.annotations))
+
+tester=TestProjectBasic()
+print (tester.test_01_AnnotationProcessor())
+print (tester.test_02_MetadataProcessor())
+print (tester.test_03_CollectionProcessor())
+print (tester.test_04_RelationalQueryProcessor())
+print (tester.test_05_TriplestoreQueryProcessor())
+print (tester.test_06_GenericQueryProcessor())
